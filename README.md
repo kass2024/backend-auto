@@ -4,47 +4,53 @@ GitHub: **https://github.com/kass2024/backend-auto**
 
 Live: **https://api.neamee-autotechsolutions.com**
 
-All Laravel files sit **directly** at the subdomain root on cPanel (no `backend/` subfolder).
+Files sit **directly at the subdomain root** (no `backend/` subfolder).
 
 ---
 
-## Local development
-
-```bash
-cp .env.example .env
-php artisan key:generate
-composer install
-php artisan migrate --seed
-php artisan serve
-```
-
-Frontend (separate repo): `VITE_API_URL=https://api.neamee-autotechsolutions.com`
-
----
-
-## cPanel — first-time setup
+## cPanel — fresh install (delete all + clone)
 
 SSH:
 
 ```bash
-cd ~/api.neamee-autotechsolutions.com
+cd ~
 
-# Keep existing .env if you have one
-cp .env ~/.env.neamee.backup 2>/dev/null || true
+# Backup .env first
+cp api.neamee-autotechsolutions.com/.env ~/.env.neamee.backup 2>/dev/null || true
 
-# Connect to GitHub repo (flat — files at root)
-git init
-git remote add origin https://github.com/kass2024/backend-auto.git
-git fetch origin
-git checkout -b main origin/main
+# Delete everything and clone fresh
+rm -rf api.neamee-autotechsolutions.com
+git clone https://github.com/kass2024/backend-auto.git api.neamee-autotechsolutions.com
+cd api.neamee-autotechsolutions.com
 
-# Restore production .env
+# Restore .env
 cp ~/.env.neamee.backup .env 2>/dev/null || cp deploy/env.cpanel.example .env
 
 bash cpanel-fix-api.sh
 ```
 
-Set cPanel document root to **`public`** folder (recommended):
+Or use the script (after first clone):
+
+```bash
+cd ~
+curl -sL https://raw.githubusercontent.com/kass2024/backend-auto/main/fresh-clone.sh -o fresh-clone.sh
+bash fresh-clone.sh
+```
+
+---
+
+## cPanel — every update (after fresh install)
+
+```bash
+cd ~/api.neamee-autotechsolutions.com
+bash git-pull-fix.sh
+```
+
+---
+
+## Document root (cPanel)
+
+Point subdomain to **`public`** folder:
 
 ```
 /home/you/api.neamee-autotechsolutions.com/public
@@ -52,18 +58,14 @@ Set cPanel document root to **`public`** folder (recommended):
 
 ---
 
-## cPanel — every update
+## Local development
 
 ```bash
-cd ~/api.neamee-autotechsolutions.com
-bash git-pull-fix.sh
-```
-
-Or:
-
-```bash
-git pull origin main
-bash cpanel-fix-api.sh
+cp .env.example .env
+composer install
+php artisan key:generate
+php artisan migrate --seed
+php artisan serve
 ```
 
 ---
