@@ -18,11 +18,12 @@ cd ~
 # Backup .env first
 cp api.neamee-autotechsolutions.com/.env ~/.env.neamee.backup 2>/dev/null || true
 
-# Clear contents only (keep the folder — cPanel subdomain path stays the same)
-mkdir -p api.neamee-autotechsolutions.com
+# Clear contents only (folder already exists in cPanel — do NOT delete the folder)
 find api.neamee-autotechsolutions.com -mindepth 1 -maxdepth 1 -exec rm -rf {} +
-git clone https://github.com/kass2024/backend-auto.git api.neamee-autotechsolutions.com
+
+# Clone into the existing empty folder
 cd api.neamee-autotechsolutions.com
+git clone https://github.com/kass2024/backend-auto.git .
 
 # Restore .env
 cp ~/.env.neamee.backup .env 2>/dev/null || cp deploy/env.cpanel.example .env

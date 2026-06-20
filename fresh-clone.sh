@@ -1,11 +1,9 @@
 #!/bin/bash
-# Fresh install: clear folder contents, clone backend-auto, restore .env, run fix.
-# Keeps ~/api.neamee-autotechsolutions.com itself (cPanel subdomain path unchanged).
+# Folder ~/api.neamee-autotechsolutions.com MUST already exist (cPanel subdomain).
+# This script deletes ONLY its contents, then clones backend-auto into it.
 #
 #   cd ~
 #   bash fresh-clone.sh
-#
-# WARNING: Deletes all files inside ~/api.neamee-autotechsolutions.com (not the folder).
 
 set -e
 
@@ -13,12 +11,15 @@ REPO="${NEAMEE_REPO:-https://github.com/kass2024/backend-auto.git}"
 LIVE_DIR="${NEAMEE_LIVE_DIR:-$HOME/api.neamee-autotechsolutions.com}"
 ENV_BACKUP="$HOME/.env.neamee.backup"
 
-echo "==> NEAMEE API fresh clone"
+echo "==> NEAMEE API fresh clone (into existing folder)"
 echo "    Repo:   $REPO"
-echo "    Target: $LIVE_DIR (folder kept; contents replaced)"
+echo "    Folder: $LIVE_DIR"
 echo ""
 
-mkdir -p "$LIVE_DIR"
+if [ ! -d "$LIVE_DIR" ]; then
+  echo "ERROR: $LIVE_DIR does not exist. Create the subdomain folder in cPanel first."
+  exit 1
+fi
 
 # Backup .env before clearing
 if [ -f "$LIVE_DIR/.env" ]; then
@@ -26,16 +27,14 @@ if [ -f "$LIVE_DIR/.env" ]; then
   echo "Backed up .env → $ENV_BACKUP"
 fi
 
-# Delete contents only — keep the folder for cPanel document root
-if [ -d "$LIVE_DIR" ]; then
-  echo "==> Clearing contents of $LIVE_DIR (folder preserved)"
-  find "$LIVE_DIR" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
-fi
+# Delete contents only — folder stays (cPanel path unchanged)
+echo "==> Deleting contents of $LIVE_DIR (folder kept)"
+find "$LIVE_DIR" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
 
-# Clone into the empty existing directory (Laravel files at root — no backend/ subfolder)
-echo "==> git clone"
-git clone "$REPO" "$LIVE_DIR"
+# Clone into the existing empty folder
+echo "==> git clone into $LIVE_DIR"
 cd "$LIVE_DIR"
+git clone "$REPO" .
 
 # Restore .env
 if [ -f "$ENV_BACKUP" ]; then
