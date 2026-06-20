@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\JobCard;
+use App\Services\AppointmentService;
 use Illuminate\Http\Request;
 
 class PortalController extends Controller
@@ -26,6 +27,9 @@ class PortalController extends Controller
             ->orderBy('scheduled_date')
             ->first();
 
+        $appointments = app(AppointmentService::class);
+        $reminders = $appointments->buildRemindersForUser($user);
+
         return response()->json([
             'loyalty_points' => $user->loyalty_points,
             'loyalty_tier' => $this->loyaltyTier($user->loyalty_points),
@@ -35,6 +39,8 @@ class PortalController extends Controller
             'invoices_count' => $user->invoices()->count(),
             'pending_invoices' => $user->invoices()->whereIn('status', ['sent', 'overdue'])->count(),
             'total_spent' => (float) $user->invoices()->where('status', 'paid')->sum('total'),
+            'reminders' => $reminders,
+            'popup_reminder' => collect($reminders)->firstWhere('show_popup', true),
             'active_job' => $activeJob ? [
                 'id' => $activeJob->id,
                 'job_number' => $activeJob->job_number,
@@ -114,6 +120,15 @@ class PortalController extends Controller
         return response()->json([
             'invoices' => $request->user()->invoices()->latest()->paginate(10),
         ]);
+    }
+
+    public function dismissReminder(Request $request, Booking $booking)
+    {
+        abort_unless($booking->user_id === $request->user()->id, 403);
+
+        app(AppointmentService::class)->dismissPopup($booking);
+
+        return response()->json(['message' => 'Reminder dismissed.']);
     }
 
     private function loyaltyTier(int $points): string

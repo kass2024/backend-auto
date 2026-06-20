@@ -15,6 +15,16 @@ class BookingResource extends Resource
 {
     use RestrictsStaffAccess;
 
+    protected static function staffNavigation(): bool
+    {
+        return true;
+    }
+
+    protected static function staffFullAccess(): bool
+    {
+        return true;
+    }
+
     protected static ?string $model = Booking::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';

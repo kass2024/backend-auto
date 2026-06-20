@@ -37,4 +37,5 @@ Route::middleware(['auth:sanctum', 'customer'])->prefix('portal')->group(functio
     Route::patch('/bookings/{booking}/cancel', [PortalController::class, 'cancelBooking']);
     Route::get('/tracking', [PortalController::class, 'tracking']);
     Route::get('/invoices', [PortalController::class, 'invoices']);
+    Route::post('/reminders/{booking}/dismiss', [PortalController::class, 'dismissReminder']);
 });

@@ -46,5 +46,18 @@ curl -s https://api.neamee-autotechsolutions.com/api/public/health
 ```bash
 cd ~/api.neamee-autotechsolutions.com
 git pull origin main
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
 bash cpanel-fix-api.sh
+php artisan neamee:verify-admin-menus
 ```
+
+### Cron (appointment email reminders)
+
+Add to cPanel cron (daily at 9 AM):
+
+```
+cd ~/api.neamee-autotechsolutions.com && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Or run every minute for Laravel scheduler. Reminders send for confirmed appointments **tomorrow**.
