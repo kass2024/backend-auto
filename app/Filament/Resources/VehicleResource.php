@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\RestrictsStaffAccess;
 use App\Filament\Resources\VehicleResource\Pages;
 use App\Models\Vehicle;
 use Filament\Forms;
@@ -12,16 +13,30 @@ use Filament\Tables\Table;
 
 class VehicleResource extends Resource
 {
+    use RestrictsStaffAccess;
+
+    protected static function staffNavigation(): bool
+    {
+        return true;
+    }
+
+    protected static function staffViewOnly(): bool
+    {
+        return true;
+    }
+
     protected static ?string $model = Vehicle::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-truck';
 
     protected static ?string $navigationGroup = 'CRM';
 
+    protected static ?int $navigationSort = 2;
+
     public static function form(Form $form): Form
     {
         return $form->schema([
-            Forms\Components\Select::make('user_id')->relationship('user', 'name')->required()->searchable(),
+            Forms\Components\Select::make('user_id')->relationship('user', 'name', fn ($q) => $q->where('role', 'customer'))->required()->searchable(),
             Forms\Components\TextInput::make('plate_number')->required(),
             Forms\Components\TextInput::make('make')->required(),
             Forms\Components\TextInput::make('model')->required(),
@@ -42,7 +57,10 @@ class VehicleResource extends Resource
             Tables\Columns\TextColumn::make('model'),
             Tables\Columns\TextColumn::make('year'),
             Tables\Columns\TextColumn::make('mileage'),
-        ])->actions([Tables\Actions\EditAction::make()])
+        ])->actions([
+            Tables\Actions\ViewAction::make(),
+            Tables\Actions\EditAction::make(),
+        ])
           ->bulkActions([Tables\Actions\BulkActionGroup::make([Tables\Actions\DeleteBulkAction::make()])]);
     }
 

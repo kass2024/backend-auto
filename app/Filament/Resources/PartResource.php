@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\RestrictsStaffAccess;
 use App\Filament\Resources\PartResource\Pages;
+use App\Filament\Support\Money;
 use App\Models\Part;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -12,6 +14,8 @@ use Filament\Tables\Table;
 
 class PartResource extends Resource
 {
+    use RestrictsStaffAccess;
+
     protected static ?string $model = Part::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-cube';
@@ -29,7 +33,8 @@ class PartResource extends Resource
             Forms\Components\TextInput::make('quantity')->numeric()->default(0),
             Forms\Components\TextInput::make('min_stock')->numeric()->default(5),
             Forms\Components\TextInput::make('unit_cost')->numeric()->prefix('$'),
-            Forms\Components\TextInput::make('unit_price')->numeric()->prefix('$'),
+            Forms\Components\TextInput::make('unit_price')->numeric()->prefix('$')
+                ->helperText('Sell price used when adding parts to invoices'),
             Forms\Components\TextInput::make('location'),
             Forms\Components\Toggle::make('is_active')->default(true),
         ]);
@@ -43,7 +48,7 @@ class PartResource extends Resource
             Tables\Columns\TextColumn::make('quantity')
                 ->color(fn (Part $record) => $record->isLowStock() ? 'danger' : null),
             Tables\Columns\TextColumn::make('min_stock'),
-            Tables\Columns\TextColumn::make('unit_price')->money('usd'),
+            Tables\Columns\TextColumn::make('unit_price')->formatStateUsing(fn ($state) => Money::format($state)),
             Tables\Columns\TextColumn::make('supplier.name'),
         ])->actions([Tables\Actions\EditAction::make()])
           ->bulkActions([Tables\Actions\BulkActionGroup::make([Tables\Actions\DeleteBulkAction::make()])]);

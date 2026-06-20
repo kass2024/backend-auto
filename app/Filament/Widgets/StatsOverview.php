@@ -16,6 +16,11 @@ class StatsOverview extends BaseWidget
 
     protected int | string | array $columnSpan = 'full';
 
+    public static function canView(): bool
+    {
+        return auth()->user()?->isFullAdmin() ?? false;
+    }
+
     protected function getStats(): array
     {
         $monthlyRevenue = Invoice::where('status', 'paid')

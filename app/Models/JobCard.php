@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class JobCard extends Model
 {
     protected $fillable = [
-        'job_number', 'booking_id', 'user_id', 'vehicle_id', 'mechanic_id',
+        'job_number', 'booking_id', 'user_id', 'vehicle_id', 'mechanic_id', 'service_id',
         'inspection_notes', 'checklist', 'labor_cost', 'parts_cost', 'total_cost',
         'status', 'started_at', 'completed_at',
     ];
@@ -42,6 +42,16 @@ class JobCard extends Model
     public function mechanic(): BelongsTo
     {
         return $this->belongsTo(Mechanic::class);
+    }
+
+    public function service(): BelongsTo
+    {
+        return $this->belongsTo(Service::class);
+    }
+
+    public function lines(): HasMany
+    {
+        return $this->hasMany(JobCardLine::class);
     }
 
     public function photos(): HasMany

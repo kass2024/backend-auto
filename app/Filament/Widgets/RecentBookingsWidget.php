@@ -17,6 +17,11 @@ class RecentBookingsWidget extends BaseWidget
 
     protected static ?string $description = 'Latest service appointments across the garage';
 
+    public static function canView(): bool
+    {
+        return auth()->user()?->isFullAdmin() ?? false;
+    }
+
     public function table(Table $table): Table
     {
         return $table

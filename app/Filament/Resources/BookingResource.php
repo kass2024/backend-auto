@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\RestrictsStaffAccess;
 use App\Filament\Resources\BookingResource\Pages;
 use App\Models\Booking;
 use Filament\Forms;
@@ -12,6 +13,8 @@ use Filament\Tables\Table;
 
 class BookingResource extends Resource
 {
+    use RestrictsStaffAccess;
+
     protected static ?string $model = Booking::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
@@ -25,7 +28,7 @@ class BookingResource extends Resource
         return $form->schema([
             Forms\Components\TextInput::make('reference')->required()->maxLength(255),
             Forms\Components\Select::make('service_id')->relationship('service', 'name')->required()->searchable(),
-            Forms\Components\Select::make('user_id')->relationship('user', 'name')->searchable(),
+            Forms\Components\Select::make('user_id')->relationship('user', 'name', fn ($q) => $q->where('role', 'customer'))->searchable(),
             Forms\Components\Select::make('vehicle_id')->relationship('vehicle', 'plate_number')->searchable(),
             Forms\Components\Select::make('mechanic_id')->relationship('mechanic', 'name')->searchable(),
             Forms\Components\TextInput::make('customer_name')->required(),
@@ -53,12 +56,13 @@ class BookingResource extends Resource
                 Tables\Columns\TextColumn::make('service.name')->sortable(),
                 Tables\Columns\TextColumn::make('scheduled_date')->date()->sortable(),
                 Tables\Columns\TextColumn::make('scheduled_time'),
-                Tables\Columns\BadgeColumn::make('status')->colors([
-                    'warning' => 'pending',
-                    'success' => 'confirmed',
-                    'danger' => 'cancelled',
-                    'primary' => 'completed',
-                ]),
+                Tables\Columns\TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state) {
+                    'pending' => 'warning',
+                    'confirmed' => 'success',
+                    'cancelled' => 'danger',
+                    'completed' => 'primary',
+                    default => 'gray',
+                }),
             ])
             ->defaultSort('scheduled_date', 'desc')
             ->filters([

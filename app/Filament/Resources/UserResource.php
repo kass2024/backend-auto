@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\RestrictsStaffAccess;
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
 use Filament\Forms;
@@ -14,6 +15,18 @@ use Illuminate\Support\Facades\Hash;
 
 class UserResource extends Resource
 {
+    use RestrictsStaffAccess;
+
+    protected static function staffNavigation(): bool
+    {
+        return true;
+    }
+
+    protected static function staffViewOnly(): bool
+    {
+        return true;
+    }
+
     protected static ?string $model = User::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
@@ -25,6 +38,8 @@ class UserResource extends Resource
     protected static ?string $modelLabel = 'Customer';
 
     protected static ?string $pluralModelLabel = 'Customers';
+
+    protected static ?int $navigationSort = 1;
 
     public static function getEloquentQuery(): Builder
     {
@@ -69,16 +84,19 @@ class UserResource extends Resource
             Tables\Columns\TextColumn::make('bookings_count')
                 ->counts('bookings')
                 ->label('Bookings'),
+            Tables\Columns\TextColumn::make('invoices_count')
+                ->counts('invoices')
+                ->label('Invoices'),
             Tables\Columns\TextColumn::make('loyalty_points')
                 ->label('Points')
                 ->sortable()
                 ->badge()
                 ->color('success'),
             Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
-        ])->filters([])
-          ->actions([
-              Tables\Actions\EditAction::make(),
-          ])
+        ])->actions([
+            Tables\Actions\ViewAction::make(),
+            Tables\Actions\EditAction::make(),
+        ])
           ->bulkActions([
               Tables\Actions\BulkActionGroup::make([
                   Tables\Actions\DeleteBulkAction::make(),
@@ -92,6 +110,7 @@ class UserResource extends Resource
         return [
             'index' => Pages\ListUsers::route('/'),
             'create' => Pages\CreateUser::route('/create'),
+            'view' => Pages\ViewUser::route('/{record}'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
     }

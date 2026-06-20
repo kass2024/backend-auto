@@ -31,6 +31,16 @@ class GarageSeeder extends Seeder
             ]
         );
 
+        User::updateOrCreate(
+            ['email' => 'staff@neamee-autotechsolutions.com'],
+            [
+                'name' => 'Staff User',
+                'password' => Hash::make('password'),
+                'role' => 'staff',
+                'phone' => '+1 (567) 329-9232',
+            ]
+        );
+
         $customer = User::updateOrCreate(
             ['email' => 'customer@neamee-autotechsolutions.com'],
             [

@@ -76,6 +76,7 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 \App\Filament\Widgets\StatsOverview::class,
                 \App\Filament\Widgets\RecentBookingsWidget::class,
+                \App\Filament\Widgets\StaffOverviewWidget::class,
             ])
             ->renderHook(
                 'panels::head.end',

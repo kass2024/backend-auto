@@ -14,11 +14,19 @@ class Dashboard extends BaseDashboard
 
     public function getHeading(): string
     {
+        if (auth()->user()?->isStaff()) {
+            return 'Staff Portal';
+        }
+
         return 'Garage Command Center';
     }
 
     public function getSubheading(): ?string
     {
+        if (auth()->user()?->isStaff()) {
+            return 'View customers and issue invoices';
+        }
+
         return 'NEAMEE Auto-Tech Solutions — Bowling Green, KY';
     }
 }

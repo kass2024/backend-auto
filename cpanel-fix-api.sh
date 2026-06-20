@@ -75,6 +75,12 @@ if [ ! -f vendor/autoload.php ]; then
     curl -sS https://getcomposer.org/installer | $PHP
     $PHP composer.phar install --no-dev --optimize-autoloader
   fi
+else
+  if command -v composer >/dev/null 2>&1; then
+    composer dump-autoload -o --no-scripts 2>/dev/null || true
+  elif [ -f composer.phar ]; then
+    $PHP composer.phar dump-autoload -o --no-scripts 2>/dev/null || true
+  fi
 fi
 
 $PHP artisan migrate --force
