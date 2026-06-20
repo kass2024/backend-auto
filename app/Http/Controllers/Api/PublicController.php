@@ -23,8 +23,17 @@ class PublicController extends Controller
             $dbError = $e->getMessage();
         }
 
+        $appKeySet = filled(config('app.key'));
+        $sessionDriver = config('session.driver');
+        $sessionsTable = config('session.table', 'sessions');
+        $sessionsTableOk = $sessionDriver !== 'database' || \Illuminate\Support\Facades\Schema::hasTable($sessionsTable);
+        $sessionPathWritable = $sessionDriver !== 'file'
+            || is_writable(storage_path('framework/sessions'));
+
+        $authReady = $appKeySet && $sessionsTableOk && $sessionPathWritable;
+
         return response()->json([
-            'ok' => $dbOk,
+            'ok' => $dbOk && $authReady,
             'app' => config('app.name'),
             'env' => config('app.env'),
             'url' => config('app.url'),
@@ -33,8 +42,13 @@ class PublicController extends Controller
             'admin_ready' => $dbOk && \Illuminate\Support\Facades\Schema::hasTable('users')
                 ? \App\Models\User::where('email', 'admin@neamee-autotechsolutions.com')->exists()
                 : false,
+            'auth_ready' => $authReady,
+            'app_key_set' => $appKeySet,
+            'session_driver' => $sessionDriver,
+            'sessions_table_ok' => $sessionsTableOk,
+            'session_path_writable' => $sessionPathWritable,
             'time' => now()->toIso8601String(),
-        ], $dbOk ? 200 : 503);
+        ], ($dbOk && $authReady) ? 200 : 503);
     }
 
     public function home()

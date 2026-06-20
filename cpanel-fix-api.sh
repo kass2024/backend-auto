@@ -13,6 +13,22 @@ else PHP=php; fi
 
 echo "==> NEAMEE API fix ($(pwd))"
 
+# .env from template if missing
+if [ ! -f .env ]; then
+  cp deploy/env.cpanel.example .env
+  echo "Created .env from deploy/env.cpanel.example"
+fi
+
+# APP_KEY is required for login sessions / CSRF cookies
+if ! grep -qE '^APP_KEY=base64:' .env 2>/dev/null; then
+  echo "==> Generating APP_KEY (required for login)"
+  $PHP artisan key:generate --force
+fi
+
+# Writable storage (file sessions + logs)
+mkdir -p storage/framework/sessions storage/framework/cache/data storage/framework/views storage/logs bootstrap/cache
+chmod -R ug+rwx storage bootstrap/cache 2>/dev/null || true
+
 # routes/health.php
 mkdir -p routes
 if [ ! -f routes/health.php ]; then
@@ -47,6 +63,12 @@ if [ ! -f vendor/autoload.php ]; then
 fi
 
 $PHP artisan migrate --force
+
+# Database session driver needs the sessions table
+if grep -qE '^SESSION_DRIVER=database' .env 2>/dev/null; then
+  $PHP artisan migrate --force --path=database/migrations/2024_01_01_000002_create_sessions_table.php 2>/dev/null || true
+fi
+
 $PHP artisan db:seed --class=GarageSeeder --force
 
 if $PHP artisan list 2>/dev/null | grep -q neamee:ensure-admin; then
