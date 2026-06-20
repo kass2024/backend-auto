@@ -8,7 +8,7 @@ Files sit **directly at the subdomain root** (no `backend/` subfolder).
 
 ---
 
-## cPanel — fresh install (delete all + clone)
+## cPanel — fresh install (clear folder + clone)
 
 SSH:
 
@@ -18,8 +18,9 @@ cd ~
 # Backup .env first
 cp api.neamee-autotechsolutions.com/.env ~/.env.neamee.backup 2>/dev/null || true
 
-# Delete everything and clone fresh
-rm -rf api.neamee-autotechsolutions.com
+# Clear contents only (keep the folder — cPanel subdomain path stays the same)
+mkdir -p api.neamee-autotechsolutions.com
+find api.neamee-autotechsolutions.com -mindepth 1 -maxdepth 1 -exec rm -rf {} +
 git clone https://github.com/kass2024/backend-auto.git api.neamee-autotechsolutions.com
 cd api.neamee-autotechsolutions.com
 
