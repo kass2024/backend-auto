@@ -31,6 +31,7 @@ class PublicController extends Controller
             || is_writable(storage_path('framework/sessions'));
 
         $authReady = $appKeySet && $sessionsTableOk && $sessionPathWritable;
+        $sessionDomain = config('session.domain');
 
         return response()->json([
             'ok' => $dbOk && $authReady,
@@ -45,6 +46,8 @@ class PublicController extends Controller
             'auth_ready' => $authReady,
             'app_key_set' => $appKeySet,
             'session_driver' => $sessionDriver,
+            'session_domain' => $sessionDomain ?: null,
+            'session_domain_ok' => filled($sessionDomain) && str_starts_with($sessionDomain, '.'),
             'sessions_table_ok' => $sessionsTableOk,
             'session_path_writable' => $sessionPathWritable,
             'time' => now()->toIso8601String(),

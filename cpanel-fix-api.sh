@@ -29,6 +29,21 @@ fi
 mkdir -p storage/framework/sessions storage/framework/cache/data storage/framework/views storage/logs bootstrap/cache
 chmod -R ug+rwx storage bootstrap/cache 2>/dev/null || true
 
+# Cross-subdomain CSRF: frontend (neamee-autotechsolutions.com) + API (api.*)
+set_env() {
+  local key="$1"
+  local value="$2"
+  if grep -q "^${key}=" .env 2>/dev/null; then
+    sed -i "s|^${key}=.*|${key}=${value}|" .env
+  else
+    echo "${key}=${value}" >> .env
+  fi
+}
+echo "==> Session / CSRF domains (required for login from main site)"
+set_env "SESSION_DOMAIN" ".neamee-autotechsolutions.com"
+set_env "SESSION_SECURE_COOKIE" "true"
+set_env "SANCTUM_STATEFUL_DOMAINS" "neamee-autotechsolutions.com,www.neamee-autotechsolutions.com"
+
 # routes/health.php
 mkdir -p routes
 if [ ! -f routes/health.php ]; then

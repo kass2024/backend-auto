@@ -12,6 +12,12 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    /** Return CSRF token in JSON when the XSRF-TOKEN cookie is not readable cross-subdomain. */
+    public function csrfToken(Request $request)
+    {
+        return response()->json(['token' => csrf_token()]);
+    }
+
     public function register(Request $request)
     {
         $validated = $request->validate([
