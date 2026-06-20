@@ -1,0 +1,35 @@
+# cPanel document root = Laravel project root (same folder as app/, artisan, public/)
+# Does NOT require root index.php — routes to public/index.php
+
+<IfModule mod_rewrite.c>
+    Options +FollowSymLinks -MultiViews
+    RewriteEngine On
+    RewriteBase /
+
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    RewriteRule ^public/ - [L]
+
+    RewriteCond %{DOCUMENT_ROOT}/public/$1 -f [OR]
+    RewriteCond %{DOCUMENT_ROOT}/public/$1 -d
+    RewriteRule ^(.*)$ public/$1 [L]
+
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # /api/* → Laravel (public/index.php — no root index.php needed)
+    RewriteRule ^ public/index.php [L,QSA]
+</IfModule>
+
+<IfModule LiteSpeed>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ public/index.php [L,QSA]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+    FallbackResource /public/index.php
+</IfModule>

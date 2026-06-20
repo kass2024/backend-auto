@@ -1,0 +1,121 @@
+/* NEAMEE Auto-Tech — Filament admin theme overrides */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@600;700&display=swap');
+
+:root {
+    --neamee-military: #556332;
+    --neamee-military-light: #6d7d47;
+    --neamee-steel-950: #22252b;
+    --neamee-steel-900: #333841;
+}
+
+.fi-body {
+    background: linear-gradient(160deg, #181c10 0%, #22252b 40%, #1a1d22 100%) !important;
+}
+
+.fi-sidebar {
+    background: linear-gradient(180deg, #181c10 0%, #22252b 100%) !important;
+    border-right: 1px solid rgba(85, 99, 50, 0.25) !important;
+}
+
+.fi-sidebar-header {
+    border-bottom: 1px solid rgba(85, 99, 50, 0.2) !important;
+}
+
+.fi-sidebar-item-button {
+    border-radius: 0.625rem !important;
+}
+
+.fi-sidebar-item-button:hover {
+    background: rgba(85, 99, 50, 0.15) !important;
+}
+
+.fi-sidebar-item-active .fi-sidebar-item-button {
+    background: rgba(85, 99, 50, 0.25) !important;
+    color: #a8b886 !important;
+}
+
+.fi-sidebar-group-label {
+    color: #6d7d47 !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    font-size: 0.65rem !important;
+}
+
+.fi-topbar {
+    background: rgba(34, 37, 43, 0.95) !important;
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(85, 99, 50, 0.2) !important;
+}
+
+.fi-main {
+    background: transparent !important;
+}
+
+.fi-header-heading {
+    font-family: 'Rajdhani', 'Inter', sans-serif !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.02em !important;
+}
+
+.fi-header-subheading {
+    color: #8591a0 !important;
+}
+
+.fi-wi-stats-overview-stat {
+    background: linear-gradient(145deg, rgba(51, 56, 65, 0.9) 0%, rgba(34, 37, 43, 0.95) 100%) !important;
+    border: 1px solid rgba(85, 99, 50, 0.2) !important;
+    border-radius: 1rem !important;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25) !important;
+    transition: transform 0.2s ease, border-color 0.2s ease !important;
+}
+
+.fi-wi-stats-overview-stat:hover {
+    transform: translateY(-2px);
+    border-color: rgba(109, 125, 71, 0.45) !important;
+}
+
+.fi-wi-stats-overview-stat-value {
+    font-family: 'Rajdhani', 'Inter', sans-serif !important;
+    font-weight: 700 !important;
+}
+
+.fi-wi-widget {
+    border-radius: 1rem !important;
+}
+
+.fi-section,
+.fi-ta-ctn {
+    background: rgba(51, 56, 65, 0.6) !important;
+    border: 1px solid rgba(85, 99, 50, 0.15) !important;
+    border-radius: 1rem !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+}
+
+.fi-ta-header-cell {
+    background: rgba(24, 28, 16, 0.5) !important;
+    color: #a8b886 !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    font-size: 0.7rem !important;
+    letter-spacing: 0.06em !important;
+}
+
+.fi-ta-row:hover {
+    background: rgba(85, 99, 50, 0.08) !important;
+}
+
+.fi-btn-color-primary {
+    background: var(--neamee-military) !important;
+}
+
+.fi-btn-color-primary:hover {
+    background: var(--neamee-military-light) !important;
+}
+
+.fi-logo {
+    font-family: 'Rajdhani', sans-serif !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.04em !important;
+}
