@@ -73,6 +73,74 @@
     background: rgba(45, 51, 61, 0.98) !important;
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--neamee-border) !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    min-height: 4.25rem !important;
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+}
+
+/* Filament ships overflow-x-clip on topbar — override it */
+.fi-topbar.overflow-x-clip {
+    overflow: visible !important;
+    overflow-x: visible !important;
+}
+
+.fi-topbar > nav {
+    overflow: visible !important;
+    min-height: 3.75rem !important;
+    height: auto !important;
+    padding-top: 0.35rem !important;
+    padding-bottom: 0.35rem !important;
+    padding-right: 1.25rem !important;
+}
+
+/* Prevent bell badge & avatar clipping */
+.fi-topbar > nav,
+.fi-topbar-nav,
+.fi-topbar-end,
+.fi-topbar-start,
+.fi-main-ctn,
+.fi-layout,
+.fi-body,
+.fi-page,
+.fi-main {
+    overflow: visible !important;
+}
+
+.fi-topbar-end {
+    padding-right: 0.75rem !important;
+    padding-top: 0.25rem !important;
+    gap: 0.75rem !important;
+    align-items: center !important;
+}
+
+.fi-topbar-database-notifications-btn,
+.fi-user-menu {
+    overflow: visible !important;
+    position: relative !important;
+}
+
+.fi-icon-btn-badge-ctn {
+    overflow: visible !important;
+    padding-top: 0.25rem !important;
+    padding-right: 0.25rem !important;
+}
+
+.fi-icon-btn-badge-ctn .fi-badge {
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+    transform: translate(20%, -20%) !important;
+    z-index: 10 !important;
+}
+
+.fi-dropdown-panel {
+    z-index: 99999 !important;
+    overflow: visible !important;
+    max-height: min(80vh, 32rem) !important;
+    overflow-y: auto !important;
 }
 
 .fi-header-heading {
@@ -179,22 +247,60 @@
 }
 
 /* ── Database & toast notifications (bell icon panel) ── */
+.fi-no {
+    position: fixed !important;
+    inset: auto 1rem auto auto !important;
+    top: 4.75rem !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: 1rem !important;
+    z-index: 99999 !important;
+    max-width: min(24rem, calc(100vw - 2rem)) !important;
+    width: min(24rem, calc(100vw - 2rem)) !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    pointer-events: none !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+}
+
 .fi-no-database-modal .fi-modal-window,
 .fi-modal-window {
     background: #2d333d !important;
     border: 1px solid var(--neamee-border) !important;
+    max-width: min(26rem, calc(100vw - 2rem)) !important;
+}
+
+#database-notifications.fi-modal {
+    z-index: 99999 !important;
+}
+
+#database-notifications .fi-modal-window {
+    max-width: min(26rem, calc(100vw - 2rem)) !important;
+}
+
+#database-notifications .fi-modal-content {
+    overflow-x: hidden !important;
+    padding-inline: 0.5rem !important;
 }
 
 .fi-no-database .fi-no-notification,
 .fi-no-database-modal .fi-no-notification,
-[data-notification-title],
 .fi-no-notification {
-    background: var(--neamee-surface-raised) !important;
-    border: 1px solid rgba(141, 175, 82, 0.45) !important;
+    background: #383f4b !important;
+    border: 1px solid rgba(141, 175, 82, 0.5) !important;
     border-left: 4px solid var(--neamee-military-light) !important;
     border-radius: 0.75rem !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45) !important;
-    margin-bottom: 0.5rem !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+    margin-bottom: 0.75rem !important;
+    padding: 1rem 1.15rem !important;
+    overflow: visible !important;
+    word-wrap: break-word !important;
+    overflow-wrap: anywhere !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    pointer-events: auto !important;
 }
 
 .fi-no-notification-title,
@@ -209,7 +315,9 @@
 .fi-no-database .fi-no-notification-body {
     color: #d8dee8 !important;
     font-size: 0.875rem !important;
-    line-height: 1.45 !important;
+    line-height: 1.5 !important;
+    white-space: pre-wrap !important;
+    overflow: visible !important;
 }
 
 .fi-no-notification-date,
@@ -225,8 +333,7 @@
 /* Toast popups (top-right) */
 .fi-no:not(.fi-no-database) .fi-no-notification {
     background: #383f4b !important;
-    border: 2px solid var(--neamee-military-light) !important;
-    min-width: 22rem !important;
+    border: 1px solid var(--neamee-military-light) !important;
 }
 
 .fi-no:not(.fi-no-database) .fi-no-notification-title {
@@ -251,6 +358,11 @@
 .fi-no-notification-actions .fi-btn {
     color: #c5db8a !important;
     font-weight: 600 !important;
+    margin-top: 0.5rem !important;
+}
+
+.fi-no-database {
+    max-width: min(26rem, calc(100vw - 2rem)) !important;
 }
 
 /* ── Buttons & links ── */

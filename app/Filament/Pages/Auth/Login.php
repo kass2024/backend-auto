@@ -14,8 +14,7 @@ class Login extends BaseLogin
             return;
         }
 
-        $frontend = rtrim(config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:5173')), '/');
-
-        redirect()->away($frontend.'/login');
+        // Guest — show Filament login (e.g. after failed redirect). Staff can also use main site /login.
+        parent::mount();
     }
 }

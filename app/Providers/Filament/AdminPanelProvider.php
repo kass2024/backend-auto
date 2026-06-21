@@ -12,7 +12,6 @@ use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use App\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
-use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
@@ -34,6 +33,9 @@ class AdminPanelProvider extends PanelProvider
             ->databaseNotifications()
             ->databaseNotificationsPolling('30s')
             ->sidebarCollapsibleOnDesktop()
+            ->userMenuItems([
+                'logout' => \Filament\Navigation\MenuItem::make()->label('Sign out'),
+            ])
             ->navigationGroups([
                 'Operations',
                 'CRM',
@@ -84,13 +86,12 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->renderHook(
                 'panels::head.end',
-                fn (): string => Blade::render('<link rel="stylesheet" href="{{ asset(\'css/filament-admin.css\') }}?v=2">')
+                fn (): string => Blade::render('<link rel="stylesheet" href="{{ asset(\'css/filament-admin.css\') }}?v=4">')
             )
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
-                AuthenticateSession::class,
                 ShareErrorsFromSession::class,
                 VerifyCsrfToken::class,
                 SubstituteBindings::class,
