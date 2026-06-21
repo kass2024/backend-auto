@@ -86,7 +86,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->renderHook(
                 'panels::head.end',
-                fn (): string => Blade::render('<link rel="stylesheet" href="{{ asset(\'css/filament-admin.css\') }}?v=4">')
+                fn (): string => Blade::render('<link rel="stylesheet" href="{{ asset(\'css/filament-admin.css\') }}?v=5">')
             )
             ->middleware([
                 EncryptCookies::class,
