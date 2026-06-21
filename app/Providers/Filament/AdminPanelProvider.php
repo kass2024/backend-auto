@@ -34,12 +34,20 @@ class AdminPanelProvider extends PanelProvider
             ->databaseNotificationsPolling('60s')
             ->sidebarCollapsibleOnDesktop()
             ->userMenuItems([
-                'logout' => \Filament\Navigation\MenuItem::make()->hidden(),
-                'sign-out' => \Filament\Navigation\MenuItem::make()
+                'logout' => \Filament\Navigation\MenuItem::make()
                     ->label('Sign out')
                     ->icon('heroicon-m-arrow-left-on-rectangle')
                     ->url(fn (): string => route('admin.sign-out')),
             ])
+            ->renderHook(
+                'panels::topbar.end',
+                fn (): string => Blade::render(
+                    '<a href="{{ route(\'admin.sign-out\') }}"'
+                    .' class="neamee-sign-out-btn hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-2 text-sm font-medium text-gray-200 hover:border-red-400/60 hover:text-white transition">'
+                    .'<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>'
+                    .'Sign out</a>'
+                )
+            )
             ->navigationGroups([
                 'Operations',
                 'CRM',
@@ -91,8 +99,7 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 'panels::head.end',
                 fn (): string => Blade::render(
-                    '<link rel="stylesheet" href="{{ asset(\'css/filament-admin.css\') }}?v=8">'
-                    .'<script defer src="{{ asset(\'js/filament-admin-fix.js\') }}?v=1"></script>'
+                    '<link rel="stylesheet" href="{{ asset(\'css/filament-admin.css\') }}?v=9">'
                 )
             )
             ->middleware([

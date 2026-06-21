@@ -73,6 +73,6 @@ trait RestrictsStaffAccess
 
     public static function canDelete($record): bool
     {
-        return auth()->user()?->isFullAdmin() ?? false;
+        return static::canEdit($record);
     }
 }

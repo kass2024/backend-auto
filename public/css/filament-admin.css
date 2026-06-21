@@ -134,13 +134,14 @@ body {
     flex-shrink: 0 !important;
 }
 
-.fi-user-menu .fi-dropdown-list form {
-    display: none !important;
+.fi-user-menu .fi-dropdown-list form[action*="sign-out"] button,
+.fi-user-menu .fi-dropdown-list form[action*="sign-out"] {
+    cursor: pointer !important;
 }
 
-.fi-user-menu .fi-dropdown-list a[href*="sign-out"] {
-    color: #f0f2f5 !important;
-    font-weight: 600 !important;
+.neamee-sign-out-btn {
+    flex-shrink: 0 !important;
+    margin-right: 0.25rem !important;
 }
 
 .fi-icon-btn-badge-ctn {
@@ -177,22 +178,10 @@ body {
     display: none !important;
 }
 
-/* Delete / confirm modals — overlay must stay BEHIND dialog (wrong z-index caused black screen) */
-.fi-modal .fi-modal-close-overlay {
-    z-index: 0 !important;
-}
-
-.fi-modal [x-ref="modalContainer"] {
-    position: relative !important;
-    z-index: 1 !important;
-}
-
+/* Delete / confirm modals — colors only; do NOT override z-index or display (breaks Filament) */
 .fi-modal .fi-modal-window {
     background: #383f4b !important;
     border: 1px solid var(--neamee-border) !important;
-    color: #f0f2f5 !important;
-    position: relative !important;
-    z-index: 2 !important;
 }
 
 .fi-modal-heading {
@@ -205,12 +194,6 @@ body {
 
 .fi-modal-footer-actions .fi-btn {
     font-weight: 600 !important;
-}
-
-/* Hide modal wrapper when closed — prevents stuck black overlay */
-.fi-modal[style*="display: none"] {
-    display: none !important;
-    pointer-events: none !important;
 }
 
 /* Table row actions — keep Edit / Delete side by side, no stacked overlap */
