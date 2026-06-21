@@ -95,7 +95,33 @@ class BookingResource extends Resource
                     'completed' => 'Completed',
                 ]),
             ])
-            ->actions([Tables\Actions\EditAction::make()])
+            ->actions([
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\Action::make('confirm')
+                        ->label('Confirm')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->visible(fn (Booking $record): bool => $record->status === 'pending')
+                        ->action(fn (Booking $record) => $record->update(['status' => 'confirmed'])),
+                    Tables\Actions\Action::make('complete')
+                        ->label('Mark completed')
+                        ->icon('heroicon-o-check-badge')
+                        ->color('primary')
+                        ->requiresConfirmation()
+                        ->visible(fn (Booking $record): bool => in_array($record->status, ['pending', 'confirmed'], true))
+                        ->action(fn (Booking $record) => $record->update(['status' => 'completed'])),
+                    Tables\Actions\Action::make('cancel')
+                        ->label('Cancel booking')
+                        ->icon('heroicon-o-x-circle')
+                        ->color('warning')
+                        ->requiresConfirmation()
+                        ->visible(fn (Booking $record): bool => ! in_array($record->status, ['cancelled', 'completed'], true))
+                        ->action(fn (Booking $record) => $record->update(['status' => 'cancelled'])),
+                    Tables\Actions\DeleteAction::make(),
+                ]),
+            ])
             ->bulkActions([Tables\Actions\BulkActionGroup::make([Tables\Actions\DeleteBulkAction::make()])]);
     }
 
