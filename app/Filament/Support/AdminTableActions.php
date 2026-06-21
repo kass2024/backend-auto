@@ -3,17 +3,27 @@
 namespace App\Filament\Support;
 
 use Filament\Notifications\Notification;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\BulkAction;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 
 class AdminTableActions
 {
-    public static function delete(string $itemLabel): DeleteAction
+    public static function delete(string $itemLabel): Action
     {
-        return DeleteAction::make()
-            ->modalHeading('Delete '.$itemLabel.'?')
-            ->modalDescription('This cannot be undone.')
-            ->modalSubmitActionLabel('Yes, delete')
+        return Action::make('delete')
+            ->label('Delete')
+            ->color('danger')
+            ->icon('heroicon-m-trash')
+            ->requiresConfirmation(false)
+            ->modalHidden(true)
+            ->extraAttributes([
+                'wire:confirm' => 'Delete this '.$itemLabel.'? This cannot be undone.',
+            ])
+            ->action(function (Model $record): void {
+                $record->delete();
+            })
             ->successNotification(
                 Notification::make()
                     ->success()
@@ -22,11 +32,21 @@ class AdminTableActions
             );
     }
 
-    public static function deleteBulk(string $itemLabel): DeleteBulkAction
+    public static function deleteBulk(string $itemLabel): BulkAction
     {
-        return DeleteBulkAction::make()
-            ->modalHeading('Delete selected '.$itemLabel.'?')
-            ->modalSubmitActionLabel('Yes, delete')
+        return BulkAction::make('delete')
+            ->label('Delete selected')
+            ->color('danger')
+            ->icon('heroicon-m-trash')
+            ->requiresConfirmation(false)
+            ->modalHidden(true)
+            ->extraAttributes([
+                'wire:confirm' => 'Delete selected '.$itemLabel.'? This cannot be undone.',
+            ])
+            ->action(function (Collection $records): void {
+                $records->each->delete();
+            })
+            ->deselectRecordsAfterCompletion()
             ->successNotification(
                 Notification::make()
                     ->success()

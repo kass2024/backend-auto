@@ -17,7 +17,7 @@ class AdminSignOutController extends Controller
         }
 
         $frontend = rtrim(
-            (string) config('app.frontend_url', 'https://neamee-autotechsolutions.com'),
+            (string) config('app.frontend_url', env('FRONTEND_URL', 'https://neamee-autotechsolutions.com')),
             '/'
         );
 

@@ -134,14 +134,19 @@ body {
     flex-shrink: 0 !important;
 }
 
-.fi-user-menu .fi-dropdown-list form[action*="sign-out"] button,
-.fi-user-menu .fi-dropdown-list form[action*="sign-out"] {
-    cursor: pointer !important;
+.fi-user-menu .fi-dropdown-list form {
+    display: none !important;
+}
+
+.fi-user-menu .fi-dropdown-list a[href*="sign-out"] {
+    color: #f0f2f5 !important;
+    font-weight: 600 !important;
 }
 
 .neamee-sign-out-btn {
     flex-shrink: 0 !important;
-    margin-right: 0.25rem !important;
+    margin-right: 0.35rem !important;
+    z-index: 5 !important;
 }
 
 .fi-icon-btn-badge-ctn {
@@ -176,24 +181,6 @@ body {
 
 .fi-dropdown-panel[hidden] {
     display: none !important;
-}
-
-/* Delete / confirm modals — colors only; do NOT override z-index or display (breaks Filament) */
-.fi-modal .fi-modal-window {
-    background: #383f4b !important;
-    border: 1px solid var(--neamee-border) !important;
-}
-
-.fi-modal-heading {
-    color: #ffffff !important;
-}
-
-.fi-modal-description {
-    color: #d8dee8 !important;
-}
-
-.fi-modal-footer-actions .fi-btn {
-    font-weight: 600 !important;
 }
 
 /* Table row actions — keep Edit / Delete side by side, no stacked overlap */
