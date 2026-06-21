@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Concerns\RestrictsStaffAccess;
 use App\Filament\Resources\BookingResource\Pages;
+use App\Filament\Support\AdminTableActions;
 use App\Models\Booking;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -100,9 +101,13 @@ class BookingResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                AdminTableActions::delete('booking'),
             ])
-            ->bulkActions([Tables\Actions\BulkActionGroup::make([Tables\Actions\DeleteBulkAction::make()])]);
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    AdminTableActions::deleteBulk('bookings'),
+                ]),
+            ]);
     }
 
     public static function getPages(): array

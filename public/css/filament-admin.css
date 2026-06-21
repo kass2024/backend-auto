@@ -104,9 +104,9 @@ body {
     overflow: visible !important;
     min-height: 3.75rem !important;
     height: auto !important;
-    padding-top: 0.35rem !important;
-    padding-bottom: 0.35rem !important;
-    padding-right: 0.5rem !important;
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    padding-right: 1rem !important;
     max-width: 100% !important;
 }
 
@@ -118,9 +118,10 @@ body {
 }
 
 .fi-topbar-end {
-    padding-right: 0.5rem !important;
-    padding-top: 0.25rem !important;
-    gap: 0.5rem !important;
+    padding-right: 1rem !important;
+    padding-top: 0.35rem !important;
+    padding-left: 0.25rem !important;
+    gap: 0.65rem !important;
     align-items: center !important;
     flex-shrink: 0 !important;
     margin-inline-end: 0 !important;
@@ -130,20 +131,34 @@ body {
 .fi-user-menu {
     overflow: visible !important;
     position: relative !important;
+    flex-shrink: 0 !important;
+}
+
+.fi-user-menu .fi-dropdown-list form {
+    display: none !important;
+}
+
+.fi-user-menu .fi-dropdown-list a[href*="sign-out"] {
+    color: #f0f2f5 !important;
+    font-weight: 600 !important;
 }
 
 .fi-icon-btn-badge-ctn {
     overflow: visible !important;
-    padding-top: 0.25rem !important;
-    padding-right: 0.25rem !important;
+    margin-top: 0.15rem !important;
+    margin-right: 0.15rem !important;
 }
 
 .fi-icon-btn-badge-ctn .fi-badge {
     position: absolute !important;
-    top: 0.15rem !important;
-    right: 0.15rem !important;
+    top: -0.2rem !important;
+    right: -0.2rem !important;
     transform: none !important;
     z-index: 10 !important;
+    font-size: 0.65rem !important;
+    min-width: 1.1rem !important;
+    height: 1.1rem !important;
+    line-height: 1.1rem !important;
 }
 
 /* User menu dropdown only — do NOT style all .fi-dropdown-panel (breaks table action menus) */
@@ -162,20 +177,22 @@ body {
     display: none !important;
 }
 
-/* Delete / confirm modals — do NOT use global [x-cloak] (hides modal, leaves black overlay) */
-.fi-modal {
-    z-index: 100000 !important;
+/* Delete / confirm modals — overlay must stay BEHIND dialog (wrong z-index caused black screen) */
+.fi-modal .fi-modal-close-overlay {
+    z-index: 0 !important;
 }
 
-.fi-modal-close-overlay {
-    z-index: 100001 !important;
+.fi-modal [x-ref="modalContainer"] {
+    position: relative !important;
+    z-index: 1 !important;
 }
 
 .fi-modal .fi-modal-window {
-    z-index: 100002 !important;
     background: #383f4b !important;
     border: 1px solid var(--neamee-border) !important;
     color: #f0f2f5 !important;
+    position: relative !important;
+    z-index: 2 !important;
 }
 
 .fi-modal-heading {
@@ -188,6 +205,12 @@ body {
 
 .fi-modal-footer-actions .fi-btn {
     font-weight: 600 !important;
+}
+
+/* Hide modal wrapper when closed — prevents stuck black overlay */
+.fi-modal[style*="display: none"] {
+    display: none !important;
+    pointer-events: none !important;
 }
 
 /* Table row actions — keep Edit / Delete side by side, no stacked overlap */
