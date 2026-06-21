@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\QuoteRequest;
 use App\Models\Service;
+use App\Services\AdminNotificationService;
 use Illuminate\Http\Request;
 
 class QuoteController extends Controller
@@ -18,6 +19,10 @@ class QuoteController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge([
+            'service_id' => $request->input('service_id') ?: null,
+        ]);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
@@ -28,7 +33,12 @@ class QuoteController extends Controller
             'message' => 'nullable|string|max:2000',
         ]);
 
-        QuoteRequest::create($validated);
+        $quote = QuoteRequest::create([
+            ...$validated,
+            'status' => 'new',
+        ]);
+
+        app(AdminNotificationService::class)->notifyNewQuote($quote->fresh('service'));
 
         return response()->json([
             'message' => 'Quote request received. We will contact you within 24 hours.',

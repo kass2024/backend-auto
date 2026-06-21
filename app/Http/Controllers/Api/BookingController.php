@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Service;
 use App\Models\Vehicle;
+use App\Services\AdminNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -20,13 +21,18 @@ class BookingController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge([
+            'scheduled_time' => $this->normalizeTime($request->input('scheduled_time')),
+            'vehicle_id' => $request->input('vehicle_id') ?: null,
+        ]);
+
         $validated = $request->validate([
             'service_id' => 'required|exists:services,id',
             'customer_name' => 'required|string|max:255',
             'customer_email' => 'required|email|max:255',
             'customer_phone' => 'required|string|max:30',
             'scheduled_date' => 'required|date|after_or_equal:today',
-            'scheduled_time' => 'required|date_format:H:i',
+            'scheduled_time' => ['required', 'regex:/^\d{2}:\d{2}$/'],
             'vehicle_id' => 'nullable|exists:vehicles,id',
             'vehicle_make' => 'nullable|string|max:100',
             'vehicle_model' => 'nullable|string|max:100',
@@ -60,9 +66,24 @@ class BookingController extends Controller
             'status' => 'pending',
         ]);
 
+        app(AdminNotificationService::class)->notifyNewBooking($booking->fresh(['service', 'vehicle']));
+
         return response()->json([
             'message' => 'Booking submitted successfully. We will confirm your appointment shortly.',
             'booking' => $booking->load('service'),
         ], 201);
+    }
+
+    private function normalizeTime(?string $time): ?string
+    {
+        if (! $time) {
+            return null;
+        }
+
+        if (preg_match('/^(\d{1,2}):(\d{2})/', $time, $m)) {
+            return sprintf('%02d:%02d', (int) $m[1], (int) $m[2]);
+        }
+
+        return $time;
     }
 }

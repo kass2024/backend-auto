@@ -25,6 +25,18 @@ class QuoteRequestResource extends Resource
 
     protected static ?string $navigationLabel = 'Quote Requests';
 
+    public static function getNavigationBadge(): ?string
+    {
+        $count = static::getModel()::where('status', 'new')->count();
+
+        return $count > 0 ? (string) $count : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'info';
+    }
+
     public static function form(Form $form): Form
     {
         return $form->schema([

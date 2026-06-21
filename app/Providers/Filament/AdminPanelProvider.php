@@ -10,7 +10,7 @@ use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use App\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
@@ -31,6 +31,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogoHeight('2.75rem')
             ->favicon(asset('images/logo/logo.png'))
             ->darkMode(true, true)
+            ->databaseNotifications()
             ->sidebarCollapsibleOnDesktop()
             ->navigationGroups([
                 'Operations',
@@ -76,6 +77,7 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 \App\Filament\Widgets\StatsOverview::class,
                 \App\Filament\Widgets\RecentBookingsWidget::class,
+                \App\Filament\Widgets\RecentQuoteRequestsWidget::class,
                 \App\Filament\Widgets\StaffOverviewWidget::class,
             ])
             ->renderHook(

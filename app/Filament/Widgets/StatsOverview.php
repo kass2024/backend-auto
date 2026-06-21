@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\Invoice;
 use App\Models\JobCard;
 use App\Models\Part;
+use App\Models\QuoteRequest;
 use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -47,6 +48,12 @@ class StatsOverview extends BaseWidget
                 ->descriptionIcon('heroicon-m-calendar-days')
                 ->color('info')
                 ->chart([0, 1, 0, 2, 1, 0, Booking::where('status', 'pending')->count()]),
+
+            Stat::make('New Quotes', QuoteRequest::where('status', 'new')->count())
+                ->description('Quote requests to review')
+                ->descriptionIcon('heroicon-m-inbox')
+                ->color('info')
+                ->chart([0, 0, 1, 0, 2, 1, QuoteRequest::where('status', 'new')->count()]),
 
             Stat::make('Monthly Revenue', '$' . number_format($monthlyRevenue, 2))
                 ->description('Paid invoices this month')
