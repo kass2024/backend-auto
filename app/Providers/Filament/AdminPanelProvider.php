@@ -34,7 +34,9 @@ class AdminPanelProvider extends PanelProvider
             ->databaseNotificationsPolling('60s')
             ->sidebarCollapsibleOnDesktop()
             ->userMenuItems([
-                'logout' => \Filament\Navigation\MenuItem::make()->label('Sign out'),
+                'logout' => \Filament\Navigation\MenuItem::make()
+                    ->label('Sign out')
+                    ->url(fn (): string => route('admin.sign-out')),
             ])
             ->navigationGroups([
                 'Operations',
@@ -86,7 +88,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->renderHook(
                 'panels::head.end',
-                fn (): string => Blade::render('<link rel="stylesheet" href="{{ asset(\'css/filament-admin.css\') }}?v=6">')
+                fn (): string => Blade::render('<link rel="stylesheet" href="{{ asset(\'css/filament-admin.css\') }}?v=7">')
             )
             ->middleware([
                 EncryptCookies::class,

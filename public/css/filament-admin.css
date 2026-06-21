@@ -14,19 +14,20 @@
 
 /* ── Base & layout ── */
 html,
-body,
-.fi-body {
-    overflow-x: clip !important;
+body {
+    overflow-x: hidden !important;
     max-width: 100vw !important;
 }
 
 .fi-body {
     background: linear-gradient(160deg, #1a1f14 0%, #252830 45%, #1e2229 100%) !important;
     color: var(--neamee-text) !important;
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
 }
 
 .fi-layout {
-    overflow-x: clip !important;
+    overflow-x: hidden !important;
     max-width: 100% !important;
 }
 
@@ -157,9 +158,36 @@ body,
     max-height: min(80vh, 32rem) !important;
 }
 
-[x-cloak],
 .fi-dropdown-panel[hidden] {
     display: none !important;
+}
+
+/* Delete / confirm modals — do NOT use global [x-cloak] (hides modal, leaves black overlay) */
+.fi-modal {
+    z-index: 100000 !important;
+}
+
+.fi-modal-close-overlay {
+    z-index: 100001 !important;
+}
+
+.fi-modal .fi-modal-window {
+    z-index: 100002 !important;
+    background: #383f4b !important;
+    border: 1px solid var(--neamee-border) !important;
+    color: #f0f2f5 !important;
+}
+
+.fi-modal-heading {
+    color: #ffffff !important;
+}
+
+.fi-modal-description {
+    color: #d8dee8 !important;
+}
+
+.fi-modal-footer-actions .fi-btn {
+    font-weight: 600 !important;
 }
 
 /* Table row actions — keep Edit / Delete side by side, no stacked overlap */
@@ -304,7 +332,7 @@ body,
 }
 
 .fi-no-database-modal .fi-modal-window,
-.fi-modal-window {
+#database-notifications .fi-modal-window {
     background: #2d333d !important;
     border: 1px solid var(--neamee-border) !important;
 }
