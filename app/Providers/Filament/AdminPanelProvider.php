@@ -31,7 +31,7 @@ class AdminPanelProvider extends PanelProvider
             ->favicon(asset('images/logo/logo.png'))
             ->darkMode(true, true)
             ->databaseNotifications()
-            ->databaseNotificationsPolling('30s')
+            ->databaseNotificationsPolling('60s')
             ->sidebarCollapsibleOnDesktop()
             ->userMenuItems([
                 'logout' => \Filament\Navigation\MenuItem::make()->label('Sign out'),
@@ -86,7 +86,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->renderHook(
                 'panels::head.end',
-                fn (): string => Blade::render('<link rel="stylesheet" href="{{ asset(\'css/filament-admin.css\') }}?v=5">')
+                fn (): string => Blade::render('<link rel="stylesheet" href="{{ asset(\'css/filament-admin.css\') }}?v=6">')
             )
             ->middleware([
                 EncryptCookies::class,

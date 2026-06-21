@@ -97,16 +97,14 @@ class QuoteRequestResource extends Resource
                     ->tooltip(fn (QuoteRequest $record) => $record->message)
                     ->wrap()
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('status')
-                    ->badge()
-                    ->formatStateUsing(fn (string $state) => ucfirst($state))
-                    ->color(fn (string $state): string => match ($state) {
-                        'new' => 'warning',
-                        'contacted' => 'info',
-                        'quoted' => 'success',
-                        'closed' => 'gray',
-                        default => 'gray',
-                    })
+                Tables\Columns\SelectColumn::make('status')
+                    ->options([
+                        'new' => 'New',
+                        'contacted' => 'Contacted',
+                        'quoted' => 'Quoted',
+                        'closed' => 'Closed',
+                    ])
+                    ->selectablePlaceholder(false)
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Submitted')
@@ -124,32 +122,9 @@ class QuoteRequestResource extends Resource
                 ]),
             ])
             ->actions([
-                Tables\Actions\ActionGroup::make([
-                    Tables\Actions\ViewAction::make(),
-                    Tables\Actions\EditAction::make(),
-                    Tables\Actions\Action::make('contacted')
-                        ->label('Mark contacted')
-                        ->icon('heroicon-o-phone')
-                        ->color('info')
-                        ->requiresConfirmation()
-                        ->visible(fn (QuoteRequest $record): bool => $record->status === 'new')
-                        ->action(fn (QuoteRequest $record) => $record->update(['status' => 'contacted'])),
-                    Tables\Actions\Action::make('quoted')
-                        ->label('Mark quoted')
-                        ->icon('heroicon-o-currency-dollar')
-                        ->color('success')
-                        ->requiresConfirmation()
-                        ->visible(fn (QuoteRequest $record): bool => in_array($record->status, ['new', 'contacted'], true))
-                        ->action(fn (QuoteRequest $record) => $record->update(['status' => 'quoted'])),
-                    Tables\Actions\Action::make('close')
-                        ->label('Close request')
-                        ->icon('heroicon-o-archive-box')
-                        ->color('gray')
-                        ->requiresConfirmation()
-                        ->visible(fn (QuoteRequest $record): bool => $record->status !== 'closed')
-                        ->action(fn (QuoteRequest $record) => $record->update(['status' => 'closed'])),
-                    Tables\Actions\DeleteAction::make(),
-                ]),
+                Tables\Actions\ViewAction::make(),
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

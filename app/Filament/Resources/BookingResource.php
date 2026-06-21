@@ -78,13 +78,16 @@ class BookingResource extends Resource
                 Tables\Columns\TextColumn::make('service.name')->sortable(),
                 Tables\Columns\TextColumn::make('scheduled_date')->date()->sortable(),
                 Tables\Columns\TextColumn::make('scheduled_time'),
-                Tables\Columns\TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state) {
-                    'pending' => 'warning',
-                    'confirmed' => 'success',
-                    'cancelled' => 'danger',
-                    'completed' => 'primary',
-                    default => 'gray',
-                }),
+                Tables\Columns\SelectColumn::make('status')
+                    ->options([
+                        'pending' => 'Pending',
+                        'confirmed' => 'Confirmed',
+                        'cancelled' => 'Cancelled',
+                        'completed' => 'Completed',
+                        'no_show' => 'No Show',
+                    ])
+                    ->selectablePlaceholder(false)
+                    ->sortable(),
             ])
             ->defaultSort('scheduled_date', 'desc')
             ->filters([
@@ -96,31 +99,8 @@ class BookingResource extends Resource
                 ]),
             ])
             ->actions([
-                Tables\Actions\ActionGroup::make([
-                    Tables\Actions\EditAction::make(),
-                    Tables\Actions\Action::make('confirm')
-                        ->label('Confirm')
-                        ->icon('heroicon-o-check-circle')
-                        ->color('success')
-                        ->requiresConfirmation()
-                        ->visible(fn (Booking $record): bool => $record->status === 'pending')
-                        ->action(fn (Booking $record) => $record->update(['status' => 'confirmed'])),
-                    Tables\Actions\Action::make('complete')
-                        ->label('Mark completed')
-                        ->icon('heroicon-o-check-badge')
-                        ->color('primary')
-                        ->requiresConfirmation()
-                        ->visible(fn (Booking $record): bool => in_array($record->status, ['pending', 'confirmed'], true))
-                        ->action(fn (Booking $record) => $record->update(['status' => 'completed'])),
-                    Tables\Actions\Action::make('cancel')
-                        ->label('Cancel booking')
-                        ->icon('heroicon-o-x-circle')
-                        ->color('warning')
-                        ->requiresConfirmation()
-                        ->visible(fn (Booking $record): bool => ! in_array($record->status, ['cancelled', 'completed'], true))
-                        ->action(fn (Booking $record) => $record->update(['status' => 'cancelled'])),
-                    Tables\Actions\DeleteAction::make(),
-                ]),
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([Tables\Actions\BulkActionGroup::make([Tables\Actions\DeleteBulkAction::make()])]);
     }
