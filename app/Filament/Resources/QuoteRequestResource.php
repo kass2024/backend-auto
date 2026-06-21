@@ -25,6 +25,10 @@ class QuoteRequestResource extends Resource
 
     protected static ?string $navigationLabel = 'Quote Requests';
 
+    protected static ?string $modelLabel = 'Quote Request';
+
+    protected static ?string $pluralModelLabel = 'Quote Requests';
+
     public static function getNavigationBadge(): ?string
     {
         $count = static::getModel()::where('status', 'new')->count();
@@ -34,38 +38,103 @@ class QuoteRequestResource extends Resource
 
     public static function getNavigationBadgeColor(): ?string
     {
-        return 'info';
+        return 'warning';
     }
 
     public static function form(Form $form): Form
     {
         return $form->schema([
-            Forms\Components\TextInput::make('name')->required(),
-            Forms\Components\TextInput::make('email')->email()->required(),
-            Forms\Components\TextInput::make('phone')->tel(),
-            Forms\Components\Select::make('service_id')->relationship('service', 'name')->searchable(),
-            Forms\Components\TextInput::make('vehicle_make'),
-            Forms\Components\TextInput::make('vehicle_model'),
-            Forms\Components\Textarea::make('message')->columnSpanFull(),
-            Forms\Components\Select::make('status')->options([
-                'new' => 'New',
-                'contacted' => 'Contacted',
-                'quoted' => 'Quoted',
-                'closed' => 'Closed',
-            ])->required(),
+            Forms\Components\Section::make('Customer')->schema([
+                Forms\Components\TextInput::make('name')->required(),
+                Forms\Components\TextInput::make('email')->email()->required(),
+                Forms\Components\TextInput::make('phone')->tel(),
+            ])->columns(3),
+            Forms\Components\Section::make('Request details')->schema([
+                Forms\Components\Select::make('service_id')->relationship('service', 'name')->searchable(),
+                Forms\Components\TextInput::make('vehicle_make')->label('Vehicle make'),
+                Forms\Components\TextInput::make('vehicle_model')->label('Vehicle model'),
+                Forms\Components\Textarea::make('message')->rows(4)->columnSpanFull(),
+                Forms\Components\Select::make('status')->options([
+                    'new' => 'New',
+                    'contacted' => 'Contacted',
+                    'quoted' => 'Quoted',
+                    'closed' => 'Closed',
+                ])->required(),
+            ])->columns(2),
         ]);
     }
 
     public static function table(Table $table): Table
     {
-        return $table->columns([
-            Tables\Columns\TextColumn::make('name')->searchable(),
-            Tables\Columns\TextColumn::make('email')->searchable(),
-            Tables\Columns\TextColumn::make('service.name'),
-            Tables\Columns\TextColumn::make('status')->badge(),
-            Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
-        ])->defaultSort('created_at', 'desc')
-          ->actions([Tables\Actions\EditAction::make()]);
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('id')
+                    ->label('#')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Customer')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('bold')
+                    ->color('primary')
+                    ->description(fn (QuoteRequest $record) => $record->phone),
+                Tables\Columns\TextColumn::make('email')
+                    ->searchable()
+                    ->copyable()
+                    ->icon('heroicon-m-envelope'),
+                Tables\Columns\TextColumn::make('service.name')
+                    ->label('Service')
+                    ->placeholder('General inquiry')
+                    ->badge()
+                    ->color('info')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('vehicle')
+                    ->label('Vehicle')
+                    ->getStateUsing(fn (QuoteRequest $record) => trim("{$record->vehicle_make} {$record->vehicle_model}") ?: '—')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('message')
+                    ->limit(40)
+                    ->tooltip(fn (QuoteRequest $record) => $record->message)
+                    ->wrap()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state) => ucfirst($state))
+                    ->color(fn (string $state): string => match ($state) {
+                        'new' => 'warning',
+                        'contacted' => 'info',
+                        'quoted' => 'success',
+                        'closed' => 'gray',
+                        default => 'gray',
+                    })
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Submitted')
+                    ->dateTime('M j, Y g:i A')
+                    ->sortable(),
+            ])
+            ->defaultSort('created_at', 'desc')
+            ->striped()
+            ->filters([
+                Tables\Filters\SelectFilter::make('status')->options([
+                    'new' => 'New',
+                    'contacted' => 'Contacted',
+                    'quoted' => 'Quoted',
+                    'closed' => 'Closed',
+                ]),
+            ])
+            ->actions([
+                Tables\Actions\ViewAction::make(),
+                Tables\Actions\EditAction::make(),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
+            ])
+            ->emptyStateHeading('No quote requests yet')
+            ->emptyStateDescription('New quote requests from the website will appear here.')
+            ->emptyStateIcon('heroicon-o-inbox');
     }
 
     public static function getPages(): array
@@ -73,6 +142,7 @@ class QuoteRequestResource extends Resource
         return [
             'index' => Pages\ListQuoteRequests::route('/'),
             'create' => Pages\CreateQuoteRequest::route('/create'),
+            'view' => Pages\ViewQuoteRequest::route('/{record}'),
             'edit' => Pages\EditQuoteRequest::route('/{record}/edit'),
         ];
     }

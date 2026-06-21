@@ -32,6 +32,7 @@ class AdminPanelProvider extends PanelProvider
             ->favicon(asset('images/logo/logo.png'))
             ->darkMode(true, true)
             ->databaseNotifications()
+            ->databaseNotificationsPolling('30s')
             ->sidebarCollapsibleOnDesktop()
             ->navigationGroups([
                 'Operations',
@@ -78,11 +79,12 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Widgets\StatsOverview::class,
                 \App\Filament\Widgets\RecentBookingsWidget::class,
                 \App\Filament\Widgets\RecentQuoteRequestsWidget::class,
+                \App\Filament\Widgets\ServicesCatalogWidget::class,
                 \App\Filament\Widgets\StaffOverviewWidget::class,
             ])
             ->renderHook(
                 'panels::head.end',
-                fn (): string => Blade::render('<link rel="stylesheet" href="{{ asset(\'css/filament-admin.css\') }}">')
+                fn (): string => Blade::render('<link rel="stylesheet" href="{{ asset(\'css/filament-admin.css\') }}?v=2">')
             )
             ->middleware([
                 EncryptCookies::class,

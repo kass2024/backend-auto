@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Resources\QuoteRequestResource;
 use App\Models\QuoteRequest;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -52,6 +53,12 @@ class RecentQuoteRequestsWidget extends BaseWidget
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime('M j, g:i A')
                     ->sortable(),
+            ])
+            ->actions([
+                Tables\Actions\Action::make('open')
+                    ->label('View')
+                    ->icon('heroicon-m-eye')
+                    ->url(fn (QuoteRequest $record) => QuoteRequestResource::getUrl('view', ['record' => $record])),
             ])
             ->striped()
             ->emptyStateHeading('No quote requests yet')

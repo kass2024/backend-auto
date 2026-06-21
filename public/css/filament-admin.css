@@ -1,121 +1,303 @@
-/* NEAMEE Auto-Tech — Filament admin theme overrides */
+/* NEAMEE Auto-Tech — Filament admin: high-contrast readable UI */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@600;700&display=swap');
 
 :root {
-    --neamee-military: #556332;
-    --neamee-military-light: #6d7d47;
-    --neamee-steel-950: #22252b;
-    --neamee-steel-900: #333841;
+    --neamee-military: #6d8a3c;
+    --neamee-military-light: #8fad52;
+    --neamee-text: #f0f2f5;
+    --neamee-text-muted: #b8c0cc;
+    --neamee-surface: #2d333d;
+    --neamee-surface-raised: #383f4b;
+    --neamee-border: rgba(141, 175, 82, 0.35);
 }
 
+/* ── Base & layout ── */
 .fi-body {
-    background: linear-gradient(160deg, #181c10 0%, #22252b 40%, #1a1d22 100%) !important;
-}
-
-.fi-sidebar {
-    background: linear-gradient(180deg, #181c10 0%, #22252b 100%) !important;
-    border-right: 1px solid rgba(85, 99, 50, 0.25) !important;
-}
-
-.fi-sidebar-header {
-    border-bottom: 1px solid rgba(85, 99, 50, 0.2) !important;
-}
-
-.fi-sidebar-item-button {
-    border-radius: 0.625rem !important;
-}
-
-.fi-sidebar-item-button:hover {
-    background: rgba(85, 99, 50, 0.15) !important;
-}
-
-.fi-sidebar-item-active .fi-sidebar-item-button {
-    background: rgba(85, 99, 50, 0.25) !important;
-    color: #a8b886 !important;
-}
-
-.fi-sidebar-group-label {
-    color: #6d7d47 !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.08em !important;
-    text-transform: uppercase !important;
-    font-size: 0.65rem !important;
-}
-
-.fi-topbar {
-    background: rgba(34, 37, 43, 0.95) !important;
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(85, 99, 50, 0.2) !important;
+    background: linear-gradient(160deg, #1a1f14 0%, #252830 45%, #1e2229 100%) !important;
+    color: var(--neamee-text) !important;
 }
 
 .fi-main {
     background: transparent !important;
 }
 
+.fi-sidebar {
+    background: linear-gradient(180deg, #1a1f14 0%, #252830 100%) !important;
+    border-right: 1px solid var(--neamee-border) !important;
+}
+
+.fi-sidebar-header {
+    border-bottom: 1px solid var(--neamee-border) !important;
+}
+
+.fi-sidebar-item-label {
+    color: var(--neamee-text) !important;
+    font-weight: 500 !important;
+}
+
+.fi-sidebar-item-button:hover {
+    background: rgba(109, 138, 60, 0.2) !important;
+}
+
+.fi-sidebar-item-active .fi-sidebar-item-button {
+    background: rgba(109, 138, 60, 0.35) !important;
+    color: #d4e8a8 !important;
+}
+
+.fi-sidebar-item-active .fi-sidebar-item-label {
+    color: #e8f5c8 !important;
+    font-weight: 600 !important;
+}
+
+.fi-sidebar-group-label {
+    color: var(--neamee-military-light) !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.1em !important;
+    text-transform: uppercase !important;
+    font-size: 0.68rem !important;
+}
+
+/* Navigation badges (pending quotes, bookings) */
+.fi-sidebar-item-badge-ctn .fi-badge,
+.fi-sidebar-item-button .fi-badge {
+    background: #c9a227 !important;
+    color: #1a1f14 !important;
+    font-weight: 700 !important;
+    font-size: 0.7rem !important;
+    min-width: 1.25rem !important;
+    box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.4) !important;
+}
+
+.fi-topbar {
+    background: rgba(45, 51, 61, 0.98) !important;
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--neamee-border) !important;
+}
+
 .fi-header-heading {
     font-family: 'Rajdhani', 'Inter', sans-serif !important;
     font-weight: 700 !important;
+    color: #ffffff !important;
     letter-spacing: 0.02em !important;
 }
 
-.fi-header-subheading {
-    color: #8591a0 !important;
+.fi-header-subheading,
+.fi-breadcrumbs-item-label {
+    color: var(--neamee-text-muted) !important;
 }
 
+/* ── Stats cards ── */
 .fi-wi-stats-overview-stat {
-    background: linear-gradient(145deg, rgba(51, 56, 65, 0.9) 0%, rgba(34, 37, 43, 0.95) 100%) !important;
-    border: 1px solid rgba(85, 99, 50, 0.2) !important;
+    background: var(--neamee-surface-raised) !important;
+    border: 1px solid var(--neamee-border) !important;
     border-radius: 1rem !important;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25) !important;
-    transition: transform 0.2s ease, border-color 0.2s ease !important;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35) !important;
 }
 
-.fi-wi-stats-overview-stat:hover {
-    transform: translateY(-2px);
-    border-color: rgba(109, 125, 71, 0.45) !important;
+.fi-wi-stats-overview-stat-label {
+    color: var(--neamee-text-muted) !important;
+    font-weight: 500 !important;
 }
 
 .fi-wi-stats-overview-stat-value {
     font-family: 'Rajdhani', 'Inter', sans-serif !important;
     font-weight: 700 !important;
+    color: #ffffff !important;
 }
 
-.fi-wi-widget {
-    border-radius: 1rem !important;
+.fi-wi-stats-overview-stat-description {
+    color: var(--neamee-text-muted) !important;
 }
 
+/* ── Tables (quote requests, services, bookings lists) ── */
 .fi-section,
-.fi-ta-ctn {
-    background: rgba(51, 56, 65, 0.6) !important;
-    border: 1px solid rgba(85, 99, 50, 0.15) !important;
+.fi-ta-ctn,
+.fi-wi-table {
+    background: var(--neamee-surface) !important;
+    border: 1px solid var(--neamee-border) !important;
     border-radius: 1rem !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
 }
 
 .fi-ta-header-cell {
-    background: rgba(24, 28, 16, 0.5) !important;
-    color: #a8b886 !important;
-    font-weight: 600 !important;
+    background: rgba(26, 31, 20, 0.85) !important;
+    color: #c5db8a !important;
+    font-weight: 700 !important;
     text-transform: uppercase !important;
-    font-size: 0.7rem !important;
-    letter-spacing: 0.06em !important;
+    font-size: 0.72rem !important;
+    letter-spacing: 0.07em !important;
+    border-bottom: 2px solid var(--neamee-border) !important;
+}
+
+.fi-ta-cell {
+    color: var(--neamee-text) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.fi-ta-text-item,
+.fi-ta-text-item-label,
+.fi-ta-col-wrp {
+    color: var(--neamee-text) !important;
+}
+
+.fi-ta-row:nth-child(even) {
+    background: rgba(255, 255, 255, 0.03) !important;
 }
 
 .fi-ta-row:hover {
-    background: rgba(85, 99, 50, 0.08) !important;
+    background: rgba(109, 138, 60, 0.12) !important;
 }
 
+.fi-ta-empty-state-heading {
+    color: #ffffff !important;
+}
+
+.fi-ta-empty-state-description {
+    color: var(--neamee-text-muted) !important;
+}
+
+.fi-ta-pagination {
+    color: var(--neamee-text-muted) !important;
+}
+
+/* Badges in tables */
+.fi-badge {
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+}
+
+/* Search & filters */
+.fi-input-wrp,
+.fi-fo-field-wrp label {
+    color: var(--neamee-text) !important;
+}
+
+.fi-input {
+    color: #ffffff !important;
+    background: rgba(0, 0, 0, 0.25) !important;
+}
+
+/* ── Database & toast notifications (bell icon panel) ── */
+.fi-no-database-modal .fi-modal-window,
+.fi-modal-window {
+    background: #2d333d !important;
+    border: 1px solid var(--neamee-border) !important;
+}
+
+.fi-no-database .fi-no-notification,
+.fi-no-database-modal .fi-no-notification,
+[data-notification-title],
+.fi-no-notification {
+    background: var(--neamee-surface-raised) !important;
+    border: 1px solid rgba(141, 175, 82, 0.45) !important;
+    border-left: 4px solid var(--neamee-military-light) !important;
+    border-radius: 0.75rem !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45) !important;
+    margin-bottom: 0.5rem !important;
+}
+
+.fi-no-notification-title,
+.fi-no-database .fi-no-notification-title,
+.fi-no-database-modal .fi-no-notification-title {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 0.95rem !important;
+}
+
+.fi-no-notification-body,
+.fi-no-database .fi-no-notification-body {
+    color: #d8dee8 !important;
+    font-size: 0.875rem !important;
+    line-height: 1.45 !important;
+}
+
+.fi-no-notification-date,
+.fi-no-database .fi-no-notification-date {
+    color: #9aa5b5 !important;
+}
+
+.fi-no-database .fi-no-notification-unread-ctn,
+.fi-no-database-modal .fi-no-notification-unread-ctn {
+    background: rgba(201, 162, 39, 0.15) !important;
+}
+
+/* Toast popups (top-right) */
+.fi-no:not(.fi-no-database) .fi-no-notification {
+    background: #383f4b !important;
+    border: 2px solid var(--neamee-military-light) !important;
+    min-width: 22rem !important;
+}
+
+.fi-no:not(.fi-no-database) .fi-no-notification-title {
+    color: #ffffff !important;
+    font-size: 1rem !important;
+}
+
+.fi-no:not(.fi-no-database) .fi-no-notification-body {
+    color: #e8ecf2 !important;
+}
+
+/* Bell icon unread badge */
+.fi-topbar-database-notifications-btn .fi-badge,
+.fi-icon-btn-badge-ctn .fi-badge {
+    background: #e05252 !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+/* Notification action buttons */
+.fi-no-notification-actions .fi-link,
+.fi-no-notification-actions .fi-btn {
+    color: #c5db8a !important;
+    font-weight: 600 !important;
+}
+
+/* ── Buttons & links ── */
 .fi-btn-color-primary {
     background: var(--neamee-military) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
 }
 
 .fi-btn-color-primary:hover {
     background: var(--neamee-military-light) !important;
 }
 
+.fi-link {
+    color: #a8c96a !important;
+    font-weight: 500 !important;
+}
+
+.fi-link:hover {
+    color: #c5db8a !important;
+}
+
 .fi-logo {
     font-family: 'Rajdhani', sans-serif !important;
     font-weight: 700 !important;
-    letter-spacing: 0.04em !important;
+}
+
+/* Widget headings on dashboard */
+.fi-wi-widget-heading {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+.fi-wi-widget-header-description {
+    color: var(--neamee-text-muted) !important;
+}
+
+/* Forms (edit quote / service) */
+.fi-fo-field-wrp-label span {
+    color: #e8ecf2 !important;
+    font-weight: 500 !important;
+}
+
+.fi-section-header-heading {
+    color: #ffffff !important;
+}
+
+.fi-section-header-description {
+    color: var(--neamee-text-muted) !important;
 }
