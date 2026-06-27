@@ -84,22 +84,32 @@ class ViewInvoice extends ViewRecord
             Actions\Action::make('print')
                 ->label('Print invoice')
                 ->icon('heroicon-o-printer')
-                ->url(fn (Invoice $record) => route('filament.admin.invoice.print', $record))
+                ->url(fn (Invoice $record) => route('filament.admin.invoices.print', $record))
                 ->openUrlInNewTab(),
-            Actions\Action::make('send')
+            Actions\Action::make('emailCustomer')
                 ->label('Email Customer')
                 ->icon('heroicon-o-paper-airplane')
                 ->color('success')
-                ->requiresConfirmation()
                 ->visible(fn (Invoice $record) => in_array($record->status, ['draft', 'sent', 'overdue'], true))
-                ->action(function (Invoice $record) {
-                    try {
-                        app(InvoiceService::class)->sendToCustomer($record);
-                        Notification::make()->title('Invoice emailed successfully')->success()->send();
-                    } catch (\Throwable $e) {
-                        Notification::make()->title('Email failed')->body($e->getMessage())->danger()->send();
-                    }
-                }),
+                ->requiresConfirmation()
+                ->modalHeading('Email invoice to customer')
+                ->modalDescription('Email this invoice with payment link to the customer?')
+                ->modalSubmitActionLabel('Send email')
+                ->action(function (Actions\Action $action): void {
+                    app(InvoiceService::class)->sendToCustomer($this->record);
+                    $action->success();
+                })
+                ->failureNotification(
+                    Notification::make()
+                        ->danger()
+                        ->title('Email failed')
+                )
+                ->successNotification(
+                    Notification::make()
+                        ->success()
+                        ->title('Invoice email sent')
+                        ->body('The customer will receive the invoice and payment link shortly.')
+                ),
             Actions\EditAction::make(),
         ];
     }

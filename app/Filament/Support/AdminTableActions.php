@@ -2,56 +2,152 @@
 
 namespace App\Filament\Support;
 
+use App\Models\Invoice;
+use App\Services\InvoiceService;
 use Filament\Notifications\Notification;
 use Filament\Tables\Actions\Action;
-use Filament\Tables\Actions\BulkAction;
-use Illuminate\Database\Eloquent\Collection;
+use Filament\Tables\Actions\DeleteBulkAction;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class AdminTableActions
 {
+    /**
+     * Browser confirm via Livewire — avoids Filament modal/backdrop conflicts with bulk actions.
+     *
+     * @return array<string, string>
+     */
+    private static function confirm(string $message): array
+    {
+        return ['wire:confirm' => $message];
+    }
+
     public static function delete(string $itemLabel): Action
     {
-        return Action::make('delete')
+        $label = Str::lower($itemLabel);
+
+        return Action::make('deleteRecord')
             ->label('Delete')
+            ->icon('heroicon-o-trash')
             ->color('danger')
-            ->icon('heroicon-m-trash')
             ->requiresConfirmation(false)
-            ->modalHidden(true)
-            ->extraAttributes([
-                'wire:confirm' => 'Delete this '.$itemLabel.'? This cannot be undone.',
-            ])
-            ->action(function (Model $record): void {
+            ->extraAttributes(self::confirm('Delete this '.$label.'? This cannot be undone.'))
+            ->action(function (Model $record, Action $action) use ($label): void {
                 $record->delete();
+                $action->success();
             })
             ->successNotification(
                 Notification::make()
                     ->success()
-                    ->title('Deleted successfully')
-                    ->body('The '.$itemLabel.' has been removed.')
+                    ->title(ucfirst($label).' deleted successfully')
+                    ->body('The '.$label.' has been removed.')
             );
     }
 
-    public static function deleteBulk(string $itemLabel): BulkAction
+    public static function deleteBulk(string $itemLabel): DeleteBulkAction
     {
-        return BulkAction::make('delete')
+        $label = Str::lower($itemLabel);
+        $plural = Str::plural($label);
+
+        return DeleteBulkAction::make('deleteSelected')
             ->label('Delete selected')
-            ->color('danger')
-            ->icon('heroicon-m-trash')
             ->requiresConfirmation(false)
-            ->modalHidden(true)
-            ->extraAttributes([
-                'wire:confirm' => 'Delete selected '.$itemLabel.'? This cannot be undone.',
-            ])
-            ->action(function (Collection $records): void {
-                $records->each->delete();
-            })
-            ->deselectRecordsAfterCompletion()
+            ->extraAttributes(self::confirm('Delete selected '.$plural.'? This cannot be undone.'))
             ->successNotification(
                 Notification::make()
                     ->success()
-                    ->title('Deleted successfully')
-                    ->body('Selected '.$itemLabel.' have been removed.')
+                    ->title(ucfirst($plural).' deleted successfully')
+                    ->body('Selected '.$plural.' have been removed.')
+            );
+    }
+
+    public static function sendInvoiceEmail(): Action
+    {
+        return Action::make('emailCustomer')
+            ->label('Email Customer')
+            ->icon('heroicon-o-paper-airplane')
+            ->color('success')
+            ->requiresConfirmation(false)
+            ->extraAttributes(self::confirm('Email this invoice with payment link to the customer?'))
+            ->action(function (Invoice $record, Action $action): void {
+                try {
+                    app(InvoiceService::class)->sendToCustomer($record);
+                    $action->success();
+                } catch (\Throwable $e) {
+                    $action->failureNotification(
+                        Notification::make()
+                            ->danger()
+                            ->title('Email failed')
+                            ->body($e->getMessage())
+                    );
+                    $action->failure();
+                }
+            })
+            ->successNotification(
+                Notification::make()
+                    ->success()
+                    ->title('Invoice email sent')
+                    ->body('The customer will receive the invoice and payment link shortly.')
+            );
+    }
+
+    public static function markInvoicePaid(): Action
+    {
+        return Action::make('markInvoicePaid')
+            ->label('Mark Paid')
+            ->icon('heroicon-o-check-circle')
+            ->color('primary')
+            ->requiresConfirmation(false)
+            ->extraAttributes(self::confirm('Mark this invoice as paid?'))
+            ->action(function (Invoice $record, Action $action): void {
+                try {
+                    app(InvoiceService::class)->markPaid($record);
+                    $action->success();
+                } catch (\Throwable $e) {
+                    $action->failureNotification(
+                        Notification::make()
+                            ->danger()
+                            ->title('Could not mark invoice as paid')
+                            ->body($e->getMessage())
+                    );
+                    $action->failure();
+                }
+            })
+            ->successNotification(
+                Notification::make()
+                    ->success()
+                    ->title('Invoice marked as paid')
+                    ->body('The invoice status has been updated.')
+            );
+    }
+
+    public static function markInvoiceUnpaid(): Action
+    {
+        return Action::make('markInvoiceUnpaid')
+            ->label('Mark Unpaid')
+            ->icon('heroicon-o-x-circle')
+            ->color('warning')
+            ->requiresConfirmation(false)
+            ->extraAttributes(self::confirm('Mark this invoice as unpaid?'))
+            ->action(function (Invoice $record, Action $action): void {
+                try {
+                    app(InvoiceService::class)->markUnpaid($record);
+                    $action->success();
+                } catch (\Throwable $e) {
+                    $action->failureNotification(
+                        Notification::make()
+                            ->danger()
+                            ->title('Could not mark invoice as unpaid')
+                            ->body($e->getMessage())
+                    );
+                    $action->failure();
+                }
+            })
+            ->successNotification(
+                Notification::make()
+                    ->success()
+                    ->title('Invoice marked as unpaid')
+                    ->body('The invoice status has been updated.')
             );
     }
 }

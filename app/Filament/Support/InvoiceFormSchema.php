@@ -37,7 +37,7 @@ class InvoiceFormSchema
                     Forms\Components\Toggle::make('send_to_customer')
                         ->label('Email invoice to customer on save')
                         ->default(true)
-                        ->helperText('Sends a professional invoice email with Stripe payment link when enabled.')
+                        ->helperText('Sends the branded invoice email automatically. Stripe link is only included for unpaid invoices set to Credit Card (Stripe).')
                         ->visible(fn (string $operation): bool => $operation === 'create'),
                 ])
                 ->columns(2),
@@ -168,14 +168,22 @@ class InvoiceFormSchema
                     Forms\Components\Hidden::make('tax_amount')->dehydrated(),
                     Forms\Components\Hidden::make('total')->dehydrated(),
                     Forms\Components\Select::make('payment_method')
+                        ->label('Payment method')
                         ->options([
                             'cash' => 'Cash',
+                            'check' => 'Check',
                             'bank_transfer' => 'Bank Transfer',
                             'credit_card' => 'Credit Card (Stripe)',
                             'mobile_money' => 'Mobile Money',
                         ])
                         ->nullable()
-                        ->visible(fn (Get $get) => $get('status') === 'paid'),
+                        ->live()
+                        ->helperText(fn (Get $get): string => match (true) {
+                            $get('status') === 'paid' => 'How the customer paid — shown on the invoice.',
+                            filled($get('payment_method')) && $get('payment_method') !== 'credit_card' => 'Customer email will not include a Stripe payment link.',
+                            default => 'Leave empty or choose Credit Card (Stripe) to include an online payment link in customer emails.',
+                        })
+                        ->required(fn (Get $get) => $get('status') === 'paid'),
                     Forms\Components\DateTimePicker::make('paid_at')
                         ->visible(fn (Get $get) => $get('status') === 'paid'),
                 ])
@@ -366,8 +374,14 @@ class InvoiceFormSchema
         $data['tax_amount'] = $taxAmount;
         $data['total'] = $total;
 
-        if (($data['status'] ?? '') === 'paid' && empty($data['paid_at'])) {
-            $data['paid_at'] = now();
+        if (($data['status'] ?? '') === 'paid') {
+            if (empty($data['paid_at'])) {
+                $data['paid_at'] = now();
+            }
+
+            if (empty($data['payment_method'])) {
+                $data['payment_method'] = 'cash';
+            }
         }
 
         return $data;

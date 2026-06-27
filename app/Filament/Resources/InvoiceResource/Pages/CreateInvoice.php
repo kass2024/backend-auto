@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\InvoiceResource\Pages;
 
 use App\Filament\Resources\InvoiceResource;
+use App\Filament\Support\InvoiceFlashNotifications;
 use App\Filament\Support\InvoiceFormSchema;
 use App\Services\InvoiceService;
 use Filament\Notifications\Notification;
@@ -15,6 +16,10 @@ class CreateInvoice extends CreateRecord
     protected bool $shouldEmailCustomer = true;
 
     protected array $lineData = [];
+
+    protected ?string $createdNotificationTitle = null;
+
+    protected ?string $createdNotificationBody = null;
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
@@ -48,34 +53,49 @@ class CreateInvoice extends CreateRecord
             try {
                 $invoiceService->sendToCustomer($this->record->fresh());
             } catch (\Throwable $e) {
-                Notification::make()
-                    ->warning()
-                    ->title('Invoice saved — email not sent')
-                    ->body($e->getMessage())
-                    ->send();
+                $this->createdNotificationTitle = 'Invoice saved — email not sent';
+                $this->createdNotificationBody = $e->getMessage();
+
+                InvoiceFlashNotifications::flash('danger', $this->createdNotificationTitle, $this->createdNotificationBody);
 
                 return;
             }
 
-            Notification::make()
-                ->success()
-                ->title('Invoice created and emailed')
-                ->body('Invoice '.$this->record->invoice_number.' was sent to '.$this->record->user?->email.' with payment link.')
-                ->send();
+            $sent = $this->record->fresh();
+            $stripeNote = $sent->wantsStripePayment() && ! $sent->isPaid()
+                ? ' Stripe payment link included.'
+                : ' No Stripe link'.($sent->paymentMethodLabel() ? ' (payment method: '.$sent->paymentMethodLabel().')' : '').'.';
+
+            $this->createdNotificationTitle = 'Invoice created and emailed successfully';
+            $this->createdNotificationBody = 'Invoice '.$sent->invoice_number.' was sent to '.$sent->user?->email.'.'.$stripeNote.' Check inbox and spam folder.';
+
+            InvoiceFlashNotifications::flash('success', $this->createdNotificationTitle, $this->createdNotificationBody);
 
             return;
         }
 
-        Notification::make()
-            ->success()
-            ->title('Invoice created')
-            ->body('Invoice '.$this->record->invoice_number.' saved successfully.')
-            ->send();
+        $this->createdNotificationTitle = 'Invoice created';
+        $this->createdNotificationBody = 'Invoice '.$this->record->invoice_number.' saved successfully.';
+
+        InvoiceFlashNotifications::flash('success', $this->createdNotificationTitle, $this->createdNotificationBody);
     }
 
     protected function getCreatedNotification(): ?Notification
     {
-        return null;
+        if (! $this->createdNotificationTitle) {
+            return null;
+        }
+
+        $notification = Notification::make()
+            ->title($this->createdNotificationTitle)
+            ->body($this->createdNotificationBody ?? '')
+            ->duration(12000);
+
+        if (str_contains($this->createdNotificationTitle, 'not sent')) {
+            return $notification->danger();
+        }
+
+        return $notification->success();
     }
 
     protected function getRedirectUrl(): string

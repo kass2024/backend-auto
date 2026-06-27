@@ -73,7 +73,7 @@ You can also pay by cash, check, or bank transfer at our shop.
 Please contact us to arrange payment.
 @endif
 
-<x-mail::button :url="route('invoice.pay', $invoice)">
+<x-mail::button :url="$viewInvoiceUrl">
 View invoice online
 </x-mail::button>
 

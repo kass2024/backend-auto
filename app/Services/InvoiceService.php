@@ -2,11 +2,15 @@
 
 namespace App\Services;
 
+use App\Jobs\SendInvoiceEmailJob;
 use App\Mail\InvoiceSentMail;
 use App\Models\Invoice;
 use App\Models\JobCard;
 use App\Models\Part;
+use App\Services\StripePaymentService;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 class InvoiceService
 {
@@ -140,22 +144,72 @@ class InvoiceService
 
     public function sendToCustomer(Invoice $invoice): void
     {
-        $invoice->load(['items', 'user', 'vehicle']);
+        $invoice->load(['user']);
 
         if (! $invoice->user?->email) {
             throw new \RuntimeException('Customer has no email address.');
         }
 
-        if ($invoice->status !== 'paid' && $invoice->total > 0) {
-            app(StripePaymentService::class)->createCheckoutSession($invoice->fresh());
-            $invoice->refresh();
-        }
-
-        Mail::to($invoice->user->email)->send(new InvoiceSentMail($invoice));
-
         if ($invoice->status !== 'paid') {
             $invoice->update(['status' => 'sent']);
         }
+
+        $this->deliverInvoiceEmail($invoice->fresh());
+    }
+
+    public function deliverInvoiceEmail(Invoice $invoice): void
+    {
+        $invoice->load(['items', 'user', 'vehicle', 'jobCard.vehicle']);
+
+        if (! $invoice->user?->email) {
+            throw new \RuntimeException('Customer has no email address.');
+        }
+
+        $recipient = $invoice->user->email;
+        $includeStripeLink = $invoice->wantsStripePayment() && ! $invoice->isPaid() && $invoice->total > 0;
+
+        if ($includeStripeLink) {
+            try {
+                app(StripePaymentService::class)->refreshCheckoutSession($invoice);
+                $invoice->refresh();
+            } catch (Throwable $e) {
+                Log::warning('Stripe checkout session failed for invoice '.$invoice->id.': '.$e->getMessage());
+            }
+        }
+
+        try {
+            Mail::to($recipient)->send(
+                new InvoiceSentMail($invoice->fresh(), $includeStripeLink)
+            );
+        } catch (Throwable $e) {
+            Log::error('Invoice email failed', [
+                'invoice_id' => $invoice->id,
+                'invoice_number' => $invoice->invoice_number,
+                'recipient' => $recipient,
+                'message' => $e->getMessage(),
+            ]);
+
+            throw new \RuntimeException('Could not send invoice email: '.$e->getMessage(), 0, $e);
+        }
+
+        Log::info('Invoice email sent', [
+            'invoice_id' => $invoice->id,
+            'invoice_number' => $invoice->invoice_number,
+            'recipient' => $recipient,
+        ]);
+
+        $invoice->update(['customer_emailed_at' => now()]);
+    }
+
+    public function queueInvoiceEmail(Invoice $invoice): void
+    {
+        if (config('queue.default') === 'sync') {
+            $this->deliverInvoiceEmail($invoice);
+
+            return;
+        }
+
+        SendInvoiceEmailJob::dispatch($invoice->id)->afterResponse();
     }
 
     public function markPaid(Invoice $invoice, ?string $paymentMethod = null): void

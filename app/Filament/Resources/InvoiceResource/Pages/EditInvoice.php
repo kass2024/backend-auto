@@ -68,7 +68,7 @@ class EditInvoice extends EditRecord
                 ->label('Print invoice')
                 ->icon('heroicon-o-printer')
                 ->color('gray')
-                ->url(fn (Invoice $record) => route('filament.admin.invoice.print', $record))
+                ->url(fn (Invoice $record) => route('filament.admin.invoices.print', $record))
                 ->openUrlInNewTab(),
             Actions\Action::make('send')
                 ->label('Email Customer')

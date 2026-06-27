@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Concerns\RestrictsStaffAccess;
 use App\Filament\Resources\UserResource\Pages;
+use App\Filament\Support\AdminTableActions;
 use App\Models\User;
 use App\Models\Vehicle;
 use Filament\Forms;
@@ -145,10 +146,12 @@ class UserResource extends Resource
         ])->actions([
             Tables\Actions\ViewAction::make(),
             Tables\Actions\EditAction::make(),
+            AdminTableActions::delete('customer')
+                ->visible(fn (User $record): bool => static::canDelete($record)),
         ])
           ->bulkActions([
               Tables\Actions\BulkActionGroup::make([
-                  Tables\Actions\DeleteBulkAction::make(),
+                  AdminTableActions::deleteBulk('customers'),
               ]),
           ])
           ->defaultSort('created_at', 'desc');

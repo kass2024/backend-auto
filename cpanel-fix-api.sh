@@ -43,6 +43,7 @@ echo "==> Session / CSRF domains (required for login from main site)"
 set_env "SESSION_DOMAIN" ".neamee-autotechsolutions.com"
 set_env "SESSION_SECURE_COOKIE" "true"
 set_env "SANCTUM_STATEFUL_DOMAINS" "neamee-autotechsolutions.com,www.neamee-autotechsolutions.com"
+set_env "FRONTEND_URL" "https://neamee-autotechsolutions.com"
 set_env "AUTO_MIGRATE" "true"
 
 # routes/health.php

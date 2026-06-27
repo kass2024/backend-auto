@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\FrontendUrl;
 use Illuminate\Auth\Middleware\Authenticate as Middleware;
 use Illuminate\Http\Request;
 
@@ -12,6 +13,6 @@ class Authenticate extends Middleware
      */
     protected function redirectTo(Request $request): ?string
     {
-        return $request->expectsJson() ? null : redirect(env('FRONTEND_URL', 'http://localhost:5173').'/login');
+        return $request->expectsJson() ? null : FrontendUrl::login();
     }
 }

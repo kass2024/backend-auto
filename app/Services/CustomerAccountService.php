@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Mail\CustomerWelcomeMail;
 use App\Models\User;
+use App\Support\FrontendUrl;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -18,7 +19,7 @@ class CustomerAccountService
 
     public function loginUrl(): string
     {
-        return rtrim((string) env('FRONTEND_URL', 'http://localhost:5173'), '/').'/login';
+        return FrontendUrl::login();
     }
 
     public function sendWelcomeEmail(User $customer, string $plainPassword): bool

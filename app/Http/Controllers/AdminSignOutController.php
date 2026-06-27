@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\FrontendUrl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,11 +17,6 @@ class AdminSignOutController extends Controller
             $request->session()->regenerateToken();
         }
 
-        $frontend = rtrim(
-            (string) config('app.frontend_url', env('FRONTEND_URL', 'https://neamee-autotechsolutions.com')),
-            '/'
-        );
-
-        return redirect()->away($frontend.'/login?logout=1');
+        return redirect()->away(FrontendUrl::login().'?logout=1');
     }
 }

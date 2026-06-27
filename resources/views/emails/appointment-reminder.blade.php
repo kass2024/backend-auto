@@ -15,7 +15,7 @@ This is a friendly reminder about your upcoming appointment at **NEAMEE Auto-Tec
 
 Please arrive a few minutes early. If you need to reschedule, contact us as soon as possible.
 
-<x-mail::button :url="rtrim(env('FRONTEND_URL', 'https://neamee-autotechsolutions.com'), '/').'/portal/bookings'">
+<x-mail::button :url="\App\Support\FrontendUrl::portal('bookings')">
 View My Bookings
 </x-mail::button>
 

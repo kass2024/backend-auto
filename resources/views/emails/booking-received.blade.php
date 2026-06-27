@@ -11,7 +11,7 @@ Thank you for booking with **NEAMEE Auto-Tech Solutions**. We have received your
 **Time:** {{ substr((string) $booking->scheduled_time, 0, 5) }}  
 **Status:** Pending confirmation
 
-<x-mail::button :url="rtrim(env('FRONTEND_URL', 'https://neamee-autotechsolutions.com'), '/').'/portal/bookings'">
+<x-mail::button :url="\App\Support\FrontendUrl::portal('bookings')">
 View My Bookings
 </x-mail::button>
 

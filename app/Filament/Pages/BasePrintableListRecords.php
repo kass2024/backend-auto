@@ -11,7 +11,7 @@ abstract class BasePrintableListRecords extends ListRecords
 
     abstract protected function getListPrintKey(): string;
 
-    /** @return array<int, Actions\Action> */
+    /** @return array<int, \Filament\Actions\Action> */
     protected function getResourceHeaderActions(): array
     {
         return [];

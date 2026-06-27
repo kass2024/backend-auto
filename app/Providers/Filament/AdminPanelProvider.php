@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Http\Controllers\Admin\InvoicePrintController;
+use App\Http\Controllers\Admin\InvoiceTableActionController;
 use App\Http\Controllers\Admin\ListPrintController;
 use Filament\Http\Middleware\Authenticate;
 use Illuminate\Support\Facades\Route;
@@ -103,7 +104,8 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 'panels::head.end',
                 fn (): string => Blade::render(
-                    '<link rel="stylesheet" href="{{ asset(\'css/filament-admin.css\') }}?v=10">'
+                    '<link rel="stylesheet" href="{{ asset(\'css/filament-admin.css\') }}?v=19">'
+                    .'<script>document.addEventListener("DOMContentLoaded",function(){document.querySelectorAll(".fi-modal:not(#database-notifications)").forEach(function(m){var w=m.querySelector(".fi-modal-window");if(w&&w.classList.contains("hidden")&&m.id){window.dispatchEvent(new CustomEvent("close-modal",{detail:{id:m.id}}));}});});</script>'
                 )
             )
             ->middleware([
@@ -125,7 +127,16 @@ class AdminPanelProvider extends PanelProvider
                     ->name('list.print');
                 Route::middleware([Authenticate::class])
                     ->get('/invoices/{invoice}/print', InvoicePrintController::class)
-                    ->name('invoice.print');
+                    ->name('invoices.print');
+                Route::middleware([Authenticate::class])
+                    ->prefix('invoices/{invoice}')
+                    ->name('invoices.')
+                    ->group(function () {
+                        Route::post('email', [InvoiceTableActionController::class, 'email'])->name('email');
+                        Route::post('mark-paid', [InvoiceTableActionController::class, 'markPaid'])->name('mark-paid');
+                        Route::post('mark-unpaid', [InvoiceTableActionController::class, 'markUnpaid'])->name('mark-unpaid');
+                        Route::delete('/', [InvoiceTableActionController::class, 'destroy'])->name('destroy');
+                    });
             });
     }
 }

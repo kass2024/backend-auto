@@ -4,11 +4,19 @@ namespace App\Filament\Resources\InvoiceResource\Pages;
 
 use App\Filament\Pages\BasePrintableListRecords;
 use App\Filament\Resources\InvoiceResource;
+use App\Filament\Support\InvoiceFlashNotifications;
 use Filament\Actions;
 
 class ListInvoices extends BasePrintableListRecords
 {
     protected static string $resource = InvoiceResource::class;
+
+    public function mount(): void
+    {
+        parent::mount();
+
+        InvoiceFlashNotifications::showFromSession();
+    }
 
     protected function getListDocumentTitle(): string
     {

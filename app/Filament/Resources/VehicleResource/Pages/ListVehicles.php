@@ -4,7 +4,6 @@ namespace App\Filament\Resources\VehicleResource\Pages;
 
 use App\Filament\Pages\BasePrintableListRecords;
 use App\Filament\Resources\VehicleResource;
-use Filament\Actions;
 
 class ListVehicles extends BasePrintableListRecords
 {
@@ -22,8 +21,6 @@ class ListVehicles extends BasePrintableListRecords
 
     protected function getResourceHeaderActions(): array
     {
-        return [
-            Actions\CreateAction::make(),
-        ];
+        return [];
     }
 }

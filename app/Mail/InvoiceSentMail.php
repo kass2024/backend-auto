@@ -3,8 +3,10 @@
 namespace App\Mail;
 
 use App\Models\Invoice;
+use App\Support\InvoiceDocument;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -13,28 +15,38 @@ class InvoiceSentMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public ?string $paymentUrl;
-
-    public function __construct(public Invoice $invoice)
-    {
+    public function __construct(
+        public Invoice $invoice,
+        public bool $includeStripeLink = true,
+    ) {
         $this->invoice->load(['partItems', 'serviceItems', 'user', 'vehicle', 'jobCard.vehicle']);
-        $this->paymentUrl = $invoice->stripe_payment_url;
     }
 
     public function envelope(): Envelope
     {
+        $fromAddress = config('mail.from.address');
+        $fromName = config('neamee.company_name');
+
         return new Envelope(
-            subject: 'Invoice '.$this->invoice->invoice_number.' — NEAMEE Auto-Tech Solutions',
+            from: new Address($fromAddress, $fromName),
+            replyTo: [new Address($fromAddress, $fromName)],
+            subject: 'Invoice '.$this->invoice->invoice_number.' from '.$fromName,
         );
     }
 
     public function content(): Content
     {
+        $viewData = InvoiceDocument::viewData(
+            $this->invoice,
+            $this->includeStripeLink,
+            showLogo: false,
+            includePdfUrl: true,
+        );
+
         return new Content(
-            markdown: 'emails.invoice-sent',
-            with: [
-                'paymentUrl' => $this->paymentUrl,
-            ],
+            view: 'emails.invoice-html',
+            text: 'emails.invoice-text',
+            with: $viewData,
         );
     }
 }

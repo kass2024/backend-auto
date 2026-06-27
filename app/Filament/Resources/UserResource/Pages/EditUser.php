@@ -71,28 +71,36 @@ class EditUser extends EditRecord
                 ->icon('heroicon-o-envelope')
                 ->color('gray')
                 ->requiresConfirmation()
-                ->modalHeading('Send new login credentials?')
-                ->modalDescription('A new temporary password will be generated and emailed to '.$this->record->email.'.')
-                ->action(function (): void {
+                ->modalHeading('Resend login email')
+                ->modalDescription('Send new login credentials to '.$this->record->email.'?')
+                ->modalSubmitActionLabel('Send email')
+                ->action(function (Actions\Action $action): void {
                     $sent = app(CustomerAccountService::class)->resetCredentialsAndEmail($this->record);
 
-                    if ($sent) {
-                        Notification::make()
-                            ->success()
-                            ->title('Login email sent')
-                            ->body('New credentials were emailed to '.$this->record->email.'.')
-                            ->send();
-
-                        return;
+                    if (! $sent) {
+                        throw new \RuntimeException('Could not send login email. Check SMTP settings in .env.');
                     }
 
+                    $action->success();
+                })
+                ->failureNotification(
                     Notification::make()
                         ->danger()
                         ->title('Email failed')
-                        ->body('Could not send login email. Check SMTP settings in .env.')
-                        ->send();
-                }),
-            Actions\DeleteAction::make(),
+                )
+                ->successNotification(
+                    Notification::make()
+                        ->success()
+                        ->title('Login email sent')
+                        ->body('New credentials were emailed to the customer.')
+                ),
+            Actions\DeleteAction::make()
+                ->successNotification(
+                    Notification::make()
+                        ->success()
+                        ->title('Customer deleted successfully')
+                        ->body('The customer has been removed.')
+                ),
         ];
     }
 }

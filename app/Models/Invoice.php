@@ -11,7 +11,7 @@ class Invoice extends Model
     protected $fillable = [
         'invoice_number', 'user_id', 'job_card_id', 'vehicle_id',
         'subtotal', 'labor_total', 'parts_total', 'tax_rate', 'tax_amount', 'discount', 'total',
-        'status', 'payment_method', 'paid_at', 'due_date', 'work_description',
+        'status', 'payment_method', 'paid_at', 'customer_emailed_at', 'due_date', 'work_description',
         'stripe_checkout_session_id', 'stripe_payment_url',
         'time_received', 'time_promised', 'odometer',
     ];
@@ -25,6 +25,7 @@ class Invoice extends Model
         'discount' => 'decimal:2',
         'total' => 'decimal:2',
         'paid_at' => 'datetime',
+        'customer_emailed_at' => 'datetime',
         'due_date' => 'date',
         'time_received' => 'datetime',
         'time_promised' => 'datetime',
@@ -68,5 +69,36 @@ class Invoice extends Model
     public function isUnpaid(): bool
     {
         return in_array($this->status, ['sent', 'overdue', 'draft'], true);
+    }
+
+    public function paymentMethodLabel(): ?string
+    {
+        return match ($this->payment_method) {
+            'cash' => 'Cash',
+            'check' => 'Check',
+            'bank_transfer' => 'Bank Transfer',
+            'credit_card' => 'Credit Card (Stripe)',
+            'mobile_money' => 'Mobile Money',
+            default => null,
+        };
+    }
+
+    /** Whether customer emails should include a Stripe payment link. */
+    public function wantsStripePayment(): bool
+    {
+        if ($this->isPaid()) {
+            return false;
+        }
+
+        if (blank($this->payment_method)) {
+            return true;
+        }
+
+        return $this->payment_method === 'credit_card';
+    }
+
+    public function wasEmailedToCustomer(): bool
+    {
+        return $this->customer_emailed_at !== null;
     }
 }

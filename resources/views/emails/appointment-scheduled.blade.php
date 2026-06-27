@@ -18,7 +18,7 @@ We've scheduled your next service at **NEAMEE Auto-Tech Solutions** following yo
 {{ $booking->staff_notes }}
 @endif
 
-<x-mail::button :url="rtrim(env('FRONTEND_URL', 'https://neamee-autotechsolutions.com'), '/').'/portal'">
+<x-mail::button :url="\App\Support\FrontendUrl::portal()">
 View in Customer Portal
 </x-mail::button>
 

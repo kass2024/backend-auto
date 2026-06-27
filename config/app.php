@@ -56,7 +56,40 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
-    'frontend_url' => env('FRONTEND_URL', 'https://neamee-autotechsolutions.com'),
+    /*
+    |--------------------------------------------------------------------------
+    | Customer SPA URL (emails, redirects)
+    |--------------------------------------------------------------------------
+    |
+    | Resolved from FRONTEND_URL. On production/cPanel, localhost values are
+    | ignored so emails never link to http://localhost:5173 after config:cache.
+    |
+    */
+    'frontend_url' => (static function (): string {
+        $localDefault = 'http://localhost:5173';
+        $productionDefault = 'https://neamee-autotechsolutions.com';
+
+        $frontend = trim((string) env('FRONTEND_URL', ''));
+        $appUrl = strtolower(trim((string) env('APP_URL', '')));
+        $appEnv = (string) env('APP_ENV', 'production');
+
+        $appIsLocal = $appUrl === ''
+            || str_contains($appUrl, 'localhost')
+            || str_contains($appUrl, '127.0.0.1');
+
+        $frontendIsLocal = $frontend === ''
+            || (bool) preg_match('#^https?://(localhost|127\.0\.0\.1)(:\d+)?(/|$)#i', $frontend);
+
+        if ($appIsLocal || $appEnv === 'local') {
+            return rtrim($frontend !== '' ? $frontend : $localDefault, '/');
+        }
+
+        if ($frontendIsLocal) {
+            return $productionDefault;
+        }
+
+        return rtrim($frontend !== '' ? $frontend : $productionDefault, '/');
+    })(),
 
     'asset_url' => env('ASSET_URL', '/'),
 

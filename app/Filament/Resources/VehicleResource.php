@@ -4,6 +4,8 @@ namespace App\Filament\Resources;
 
 use App\Filament\Concerns\RestrictsStaffAccess;
 use App\Filament\Resources\VehicleResource\Pages;
+use App\Filament\Support\AdminTableActions;
+use App\Filament\Resources\UserResource;
 use App\Models\Vehicle;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -35,12 +37,12 @@ class VehicleResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        return false;
+        return auth()->user()?->isFullAdmin() ?? false;
     }
 
     public static function canViewAny(): bool
     {
-        return false;
+        return auth()->user()?->isFullAdmin() ?? false;
     }
 
     public static function canCreate(): bool
@@ -55,7 +57,7 @@ class VehicleResource extends Resource
 
     public static function canDelete($record): bool
     {
-        return false;
+        return auth()->user()?->isFullAdmin() ?? false;
     }
 
     public static function form(Form $form): Form
@@ -94,6 +96,10 @@ class VehicleResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
+            Tables\Columns\TextColumn::make('user.name')
+                ->label('Customer')
+                ->searchable()
+                ->sortable(),
             Tables\Columns\TextColumn::make('plate_number')
                 ->label('Plate number')
                 ->searchable()
@@ -111,10 +117,23 @@ class VehicleResource extends Resource
             Tables\Columns\TextColumn::make('mileage')
                 ->sortable(),
         ])->actions([
-            Tables\Actions\ViewAction::make(),
-            Tables\Actions\EditAction::make(),
+            Tables\Actions\Action::make('customer')
+                ->label('Customer')
+                ->icon('heroicon-o-user')
+                ->color('gray')
+                ->url(fn (Vehicle $record) => $record->user_id
+                    ? UserResource::getUrl('edit', ['record' => $record->user_id])
+                    : null)
+                ->visible(fn (Vehicle $record): bool => filled($record->user_id))
+                ->openUrlInNewTab(false),
+            AdminTableActions::delete('vehicle'),
         ])
-          ->bulkActions([Tables\Actions\BulkActionGroup::make([Tables\Actions\DeleteBulkAction::make()])]);
+          ->bulkActions([
+              Tables\Actions\BulkActionGroup::make([
+                  AdminTableActions::deleteBulk('vehicles'),
+              ]),
+          ])
+          ->defaultSort('plate_number');
     }
 
     public static function getPages(): array

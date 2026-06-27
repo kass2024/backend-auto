@@ -7,12 +7,11 @@ use App\Filament\Resources\InvoiceResource\Pages;
 use App\Filament\Support\InvoiceFormSchema;
 use App\Filament\Support\Money;
 use App\Models\Invoice;
-use App\Services\InvoiceService;
 use Filament\Forms\Form;
-use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class InvoiceResource extends Resource
 {
@@ -36,6 +35,11 @@ class InvoiceResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['user', 'vehicle']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form->schema(InvoiceFormSchema::schema());
@@ -45,13 +49,32 @@ class InvoiceResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('invoice_number')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('user.name')->label('Customer')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('invoice_number')
+                    ->label('Invoice #')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('user.name')
+                    ->label('Customer / Client')
+                    ->description(fn (Invoice $record): string => collect([
+                        $record->user?->email,
+                        $record->user?->phone,
+                    ])->filter()->implode(' · ') ?: '—')
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        return $query->whereHas('user', function (Builder $userQuery) use ($search): void {
+                            $userQuery
+                                ->where('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%")
+                                ->orWhere('phone', 'like', "%{$search}%");
+                        });
+                    })
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('vehicle.plate_number')
                     ->label('Vehicle')
                     ->placeholder('—')
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('total')->formatStateUsing(fn ($state) => Money::format($state))->sortable(),
+                Tables\Columns\TextColumn::make('total')
+                    ->formatStateUsing(fn ($state) => Money::format($state))
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
@@ -73,6 +96,9 @@ class InvoiceResource extends Resource
                 Tables\Columns\TextColumn::make('due_date')->date()->sortable(),
                 Tables\Columns\TextColumn::make('paid_at')->dateTime()->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
+                Tables\Columns\ViewColumn::make('actions')
+                    ->label('Actions')
+                    ->view('filament.tables.columns.invoice-actions'),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
@@ -89,51 +115,8 @@ class InvoiceResource extends Resource
                     ->label('Paid only')
                     ->query(fn ($query) => $query->where('status', 'paid')),
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\Action::make('print')
-                    ->label('Print')
-                    ->icon('heroicon-o-printer')
-                    ->color('gray')
-                    ->url(fn (Invoice $record) => route('filament.admin.invoice.print', $record))
-                    ->openUrlInNewTab(),
-                Tables\Actions\Action::make('send')
-                    ->label('Email Customer')
-                    ->icon('heroicon-o-paper-airplane')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->modalHeading('Send invoice by email')
-                    ->modalDescription(fn (Invoice $record) => 'Email invoice with Stripe payment link to '.$record->user?->email.'?')
-                    ->visible(fn (Invoice $record) => in_array($record->status, ['draft', 'sent', 'overdue'], true))
-                    ->action(function (Invoice $record) {
-                        try {
-                            app(InvoiceService::class)->sendToCustomer($record);
-                            Notification::make()->title('Invoice emailed successfully')->success()->send();
-                        } catch (\Throwable $e) {
-                            Notification::make()->title('Email failed')->body($e->getMessage())->danger()->send();
-                        }
-                    }),
-                Tables\Actions\Action::make('markPaid')
-                    ->label('Mark Paid')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('primary')
-                    ->visible(fn (Invoice $record) => $record->status !== 'paid')
-                    ->requiresConfirmation()
-                    ->action(fn (Invoice $record) => app(InvoiceService::class)->markPaid($record)),
-                Tables\Actions\Action::make('markUnpaid')
-                    ->label('Mark Unpaid')
-                    ->icon('heroicon-o-x-circle')
-                    ->color('warning')
-                    ->visible(fn (Invoice $record) => $record->status === 'paid')
-                    ->requiresConfirmation()
-                    ->action(fn (Invoice $record) => app(InvoiceService::class)->markUnpaid($record)),
-                Tables\Actions\EditAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+            ->actions([])
+            ->bulkActions([]);
     }
 
     public static function getRelations(): array

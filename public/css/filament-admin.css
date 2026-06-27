@@ -202,6 +202,15 @@ body {
     min-width: 7rem !important;
 }
 
+.fi-ta-header-toolbar .fi-dropdown-panel {
+    max-width: 14rem !important;
+}
+
+.fi-ta-record .fi-ta-actions {
+    position: relative !important;
+    z-index: 2 !important;
+}
+
 .fi-header-heading {
     font-family: 'Rajdhani', 'Inter', sans-serif !important;
     font-weight: 700 !important;
@@ -483,4 +492,118 @@ body {
 
 .fi-section-header-description {
     color: var(--neamee-text-muted) !important;
+}
+
+/* Confirmation modals — colors only (do not override Filament visibility / z-index) */
+.fi-modal:not(#database-notifications) .fi-modal-window {
+    background: #2d333d !important;
+    border: 1px solid var(--neamee-border) !important;
+    color: var(--neamee-text) !important;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.65) !important;
+}
+
+.fi-modal:not(#database-notifications) .fi-modal-heading,
+.fi-modal:not(#database-notifications) .fi-modal-heading h2 {
+    color: #ffffff !important;
+}
+
+.fi-modal:not(#database-notifications) .fi-modal-description,
+.fi-modal:not(#database-notifications) .fi-modal-content,
+.fi-modal:not(#database-notifications) .fi-modal-footer {
+    color: var(--neamee-text-muted) !important;
+}
+
+.fi-modal:not(#database-notifications) .fi-modal-footer-actions .fi-btn {
+    color: #ffffff !important;
+}
+
+/* Invoice list — HTTP action buttons (no Filament modals) */
+.neamee-invoice-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 14rem;
+}
+
+.neamee-invoice-action-form {
+    display: inline-flex;
+    margin: 0;
+    padding: 0;
+}
+
+.neamee-invoice-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    border: 1px solid transparent;
+    padding: 0.3rem 0.55rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none !important;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.neamee-invoice-action--muted {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #e8ecf2 !important;
+}
+
+.neamee-invoice-action--muted:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff !important;
+}
+
+.neamee-invoice-action--success {
+    background: rgba(34, 197, 94, 0.18);
+    border-color: rgba(34, 197, 94, 0.45);
+    color: #86efac !important;
+}
+
+.neamee-invoice-action--success:hover {
+    background: rgba(34, 197, 94, 0.3);
+    color: #dcfce7 !important;
+}
+
+.neamee-invoice-action--primary {
+    background: rgba(109, 138, 60, 0.25);
+    border-color: rgba(141, 175, 82, 0.55);
+    color: #d4e8a8 !important;
+}
+
+.neamee-invoice-action--primary:hover {
+    background: rgba(109, 138, 60, 0.4);
+    color: #ecfccb !important;
+}
+
+.neamee-invoice-action--warning {
+    background: rgba(245, 158, 11, 0.18);
+    border-color: rgba(245, 158, 11, 0.45);
+    color: #fcd34d !important;
+}
+
+.neamee-invoice-action--warning:hover {
+    background: rgba(245, 158, 11, 0.3);
+    color: #fef3c7 !important;
+}
+
+.neamee-invoice-action--danger {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.45);
+    color: #fca5a5 !important;
+}
+
+.neamee-invoice-action--danger:hover {
+    background: rgba(239, 68, 68, 0.28);
+    color: #fee2e2 !important;
+}
+
+.fi-ta-cell:has(.neamee-invoice-actions) {
+    overflow: visible !important;
+    vertical-align: top;
 }
