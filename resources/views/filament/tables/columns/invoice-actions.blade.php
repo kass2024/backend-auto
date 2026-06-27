@@ -1,5 +1,6 @@
 @php
     use App\Filament\Resources\InvoiceResource;
+    use App\Filament\Support\InvoiceEmailUi;
 
     /** @var \App\Models\Invoice $record */
     $record = $getRecord();
@@ -7,6 +8,7 @@
     $wasEmailed = $record->wasEmailedToCustomer();
     $canMarkPaid = $record->status !== 'paid';
     $canMarkUnpaid = $record->status === 'paid';
+    $customerEmail = $record->user?->email ?? 'the customer';
 @endphp
 
 <div class="neamee-invoice-actions">
@@ -27,14 +29,14 @@
             method="post"
             action="{{ route('filament.admin.invoices.email', $record) }}"
             class="neamee-invoice-action-form"
-            onsubmit="return confirm('{{ $wasEmailed ? 'Resend this invoice to the customer?' : 'Email this invoice to the customer?' }}')"
+            onsubmit="return confirm('{{ InvoiceEmailUi::confirmMessage($customerEmail, $wasEmailed) }}')"
         >
             @csrf
             <button
                 type="submit"
                 class="neamee-invoice-action {{ $wasEmailed ? 'neamee-invoice-action--warning' : 'neamee-invoice-action--success' }}"
             >
-                {{ $wasEmailed ? 'Resend' : 'Email customer' }}
+                {{ InvoiceEmailUi::actionLabel($wasEmailed) }}
             </button>
         </form>
     @endif

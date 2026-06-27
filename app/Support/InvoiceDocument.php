@@ -37,7 +37,7 @@ class InvoiceDocument
             'showLogo' => $showLogo,
             'includeStripeLink' => $includeStripeLink,
             'paymentUrl' => $includeStripeLink ? $invoice->stripe_payment_url : null,
-            'pdfUrl' => $forEmail ? self::signedInvoiceViewUrl($invoice) : null,
+            'pdfUrl' => $forEmail ? self::publicViewUrl($invoice) : null,
             'inlineStyles' => view('invoices.partials.styles')->render(),
         ];
     }
@@ -49,10 +49,16 @@ class InvoiceDocument
         return $forEmail ? self::emailUrl($path, asset: true) : asset($path);
     }
 
-    public static function signedInvoiceViewUrl(Invoice $invoice): string
+    public static function publicViewUrl(Invoice $invoice): ?string
     {
+        $token = $invoice->public_view_token ?: $invoice->ensurePublicViewToken();
+
+        if (blank($token)) {
+            return null;
+        }
+
         return self::emailUrl(
-            fn (): string => URL::signedRoute('invoice.view', ['invoice' => $invoice->id])
+            fn (): string => route('invoice.view', ['invoice' => $invoice->id, 'token' => $token], absolute: true)
         );
     }
 

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\InvoiceResource\Pages;
 
 use App\Filament\Resources\InvoiceResource;
+use App\Filament\Support\InvoiceEmailUi;
 use App\Filament\Support\InvoiceFlashNotifications;
 use App\Filament\Support\InvoiceFormSchema;
 use App\Services\InvoiceService;
@@ -62,12 +63,13 @@ class CreateInvoice extends CreateRecord
             }
 
             $sent = $this->record->fresh();
-            $stripeNote = $sent->wantsStripePayment() && ! $sent->isPaid()
-                ? ' Stripe payment link included.'
-                : ' No Stripe link'.($sent->paymentMethodLabel() ? ' (payment method: '.$sent->paymentMethodLabel().')' : '').'.';
 
-            $this->createdNotificationTitle = 'Invoice created and emailed successfully';
-            $this->createdNotificationBody = 'Invoice '.$sent->invoice_number.' was sent to '.$sent->user?->email.'.'.$stripeNote.' Check inbox and spam folder.';
+            $this->createdNotificationTitle = InvoiceEmailUi::successTitle(false);
+            $this->createdNotificationBody = InvoiceEmailUi::successBody(
+                $sent->invoice_number,
+                $sent->user?->email ?? '',
+                $sent->wantsStripePayment() && ! $sent->isPaid(),
+            );
 
             InvoiceFlashNotifications::flash('success', $this->createdNotificationTitle, $this->createdNotificationBody);
 

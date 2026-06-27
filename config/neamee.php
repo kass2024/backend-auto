@@ -9,7 +9,7 @@ return [
 
     /**
      * Public URL for links inside customer emails (PDF view, etc.).
-     * Use your live API/site URL — never localhost (Gmail blocks those emails).
+     * Must match the server/database that sends invoice emails.
      */
     'email_app_url' => env('MAIL_APP_URL', env('APP_URL')),
 

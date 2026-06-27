@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\InvoiceResource\Pages;
 
 use App\Filament\Resources\InvoiceResource;
+use App\Filament\Support\InvoiceEmailUi;
 use App\Filament\Support\InvoiceFormSchema;
 use App\Models\Invoice;
 use App\Services\InvoiceService;
@@ -71,18 +72,41 @@ class EditInvoice extends EditRecord
                 ->url(fn (Invoice $record) => route('filament.admin.invoices.print', $record))
                 ->openUrlInNewTab(),
             Actions\Action::make('send')
-                ->label('Email Customer')
+                ->label(fn (Invoice $record): string => InvoiceEmailUi::actionLabel($record->wasEmailedToCustomer()))
                 ->icon('heroicon-o-paper-airplane')
-                ->color('success')
+                ->color(fn (Invoice $record): string => $record->wasEmailedToCustomer() ? 'warning' : 'success')
                 ->requiresConfirmation()
+                ->modalHeading(fn (Invoice $record): string => InvoiceEmailUi::modalHeading($record->wasEmailedToCustomer()))
+                ->modalDescription(fn (Invoice $record): string => InvoiceEmailUi::confirmMessage($record->user?->email ?? 'the customer', $record->wasEmailedToCustomer()))
                 ->visible(fn (Invoice $record) => in_array($record->status, ['draft', 'sent', 'overdue'], true))
-                ->action(function (Invoice $record) {
+                ->action(function (Invoice $record): void {
+                    $wasResend = $record->wasEmailedToCustomer();
+
                     try {
                         app(InvoiceService::class)->sendToCustomer($record);
-                        Notification::make()->title('Invoice emailed successfully')->success()->send();
                     } catch (\Throwable $e) {
-                        Notification::make()->title('Email failed')->body($e->getMessage())->danger()->send();
+                        Notification::make()
+                            ->title('Email failed')
+                            ->body($e->getMessage())
+                            ->danger()
+                            ->duration(12000)
+                            ->send();
+
+                        return;
                     }
+
+                    $sent = $record->fresh();
+
+                    Notification::make()
+                        ->title(InvoiceEmailUi::successTitle($wasResend))
+                        ->body(InvoiceEmailUi::successBody(
+                            $sent->invoice_number,
+                            $sent->user?->email ?? '',
+                            $sent->wantsStripePayment() && ! $sent->isPaid(),
+                        ))
+                        ->success()
+                        ->duration(12000)
+                        ->send();
                 }),
             Actions\Action::make('markPaid')
                 ->label('Mark Paid')

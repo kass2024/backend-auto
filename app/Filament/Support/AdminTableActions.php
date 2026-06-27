@@ -4,6 +4,7 @@ namespace App\Filament\Support;
 
 use App\Models\Invoice;
 use App\Services\InvoiceService;
+use App\Filament\Support\InvoiceEmailUi;
 use Filament\Notifications\Notification;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\DeleteBulkAction;
@@ -64,11 +65,11 @@ class AdminTableActions
     public static function sendInvoiceEmail(): Action
     {
         return Action::make('emailCustomer')
-            ->label('Email Customer')
+            ->label(fn (Invoice $record): string => InvoiceEmailUi::actionLabel($record->wasEmailedToCustomer()))
             ->icon('heroicon-o-paper-airplane')
-            ->color('success')
+            ->color(fn (Invoice $record): string => $record->wasEmailedToCustomer() ? 'warning' : 'success')
             ->requiresConfirmation(false)
-            ->extraAttributes(self::confirm('Email this invoice with payment link to the customer?'))
+            ->extraAttributes(self::confirm('Email or resend this invoice to the customer?'))
             ->action(function (Invoice $record, Action $action): void {
                 try {
                     app(InvoiceService::class)->sendToCustomer($record);
@@ -87,7 +88,7 @@ class AdminTableActions
                 Notification::make()
                     ->success()
                     ->title('Invoice email sent')
-                    ->body('The customer will receive the invoice and payment link shortly.')
+                    ->body('The customer will receive the invoice shortly. Check inbox and spam folder.')
             );
     }
 

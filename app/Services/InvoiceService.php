@@ -177,9 +177,12 @@ class InvoiceService
             }
         }
 
+        $invoice->ensurePublicViewToken();
+        $invoice = $invoice->fresh();
+
         try {
             Mail::to($recipient)->send(
-                new InvoiceSentMail($invoice->fresh(), $includeStripeLink)
+                new InvoiceSentMail($invoice, $includeStripeLink)
             );
         } catch (Throwable $e) {
             Log::error('Invoice email failed', [

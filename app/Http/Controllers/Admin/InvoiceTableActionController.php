@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Filament\Resources\InvoiceResource;
+use App\Filament\Support\InvoiceEmailUi;
 use App\Filament\Support\InvoiceFlashNotifications;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
@@ -19,11 +20,16 @@ class InvoiceTableActionController extends Controller
             app(InvoiceService::class)->sendToCustomer($invoice);
 
             $sent = $invoice->fresh();
-            $body = $sent->wantsStripePayment() && ! $sent->isPaid()
-                ? 'Invoice '.$sent->invoice_number.' was sent to '.$sent->user?->email.' with Stripe payment link. Check inbox and spam folder.'
-                : 'Invoice '.$sent->invoice_number.' was sent to '.$sent->user?->email.' (no Stripe link). Check inbox and spam folder.';
 
-            InvoiceFlashNotifications::flash('success', $wasEmailedBefore ? 'Invoice resent successfully' : 'Invoice email sent successfully', $body);
+            InvoiceFlashNotifications::flash(
+                'success',
+                InvoiceEmailUi::successTitle($wasEmailedBefore),
+                InvoiceEmailUi::successBody(
+                    $sent->invoice_number,
+                    $sent->user?->email ?? '',
+                    $sent->wantsStripePayment() && ! $sent->isPaid(),
+                ),
+            );
         } catch (\Throwable $e) {
             InvoiceFlashNotifications::flash('danger', 'Email failed', $e->getMessage());
         }

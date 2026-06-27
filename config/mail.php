@@ -105,8 +105,8 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', 'Example'),
+        'address' => env('MAIL_FROM_ADDRESS', 'info@neamee-autotechsolutions.com'),
+        'name' => env('MAIL_FROM_NAME', 'NEAMEE-AUTO-TECH SOLUTIONS'),
     ],
 
     'admin_address' => env('MAIL_ADMIN_ADDRESS', env('MAIL_FROM_ADDRESS', 'info@neamee-autotechsolutions.com')),

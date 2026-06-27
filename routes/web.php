@@ -12,9 +12,7 @@ Route::middleware('web')->match(['get', 'post'], '/admin/sign-out', AdminSignOut
     ->name('admin.sign-out');
 
 Route::get('/pay/invoice/{invoice}', [InvoicePaymentController::class, 'pay'])->name('invoice.pay');
-Route::get('/invoice/{invoice}/view', InvoiceViewController::class)
-    ->middleware('signed')
-    ->name('invoice.view');
+Route::get('/invoice/{invoice}/view', InvoiceViewController::class)->name('invoice.view');
 Route::get('/pay/invoice/{invoice}/success', [InvoicePaymentController::class, 'success'])->name('invoice.payment.success');
 Route::get('/pay/invoice/{invoice}/cancel', [InvoicePaymentController::class, 'cancel'])->name('invoice.payment.cancel');
 Route::post('/stripe/webhook', [InvoicePaymentController::class, 'webhook'])

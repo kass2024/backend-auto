@@ -6,13 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class Invoice extends Model
 {
     protected $fillable = [
         'invoice_number', 'user_id', 'job_card_id', 'vehicle_id',
         'subtotal', 'labor_total', 'parts_total', 'tax_rate', 'tax_amount', 'discount', 'total',
-        'status', 'payment_method', 'paid_at', 'customer_emailed_at', 'due_date', 'work_description',
+        'status', 'payment_method', 'paid_at', 'customer_emailed_at', 'public_view_token', 'due_date', 'work_description',
         'stripe_checkout_session_id', 'stripe_payment_url',
         'time_received', 'time_promised', 'odometer',
     ];
@@ -125,5 +126,40 @@ class Invoice extends Model
         } catch (\Throwable) {
             // Column may be missing if migrations have not run yet — email still sent.
         }
+    }
+
+    public function ensurePublicViewToken(): ?string
+    {
+        if (! Schema::hasColumn($this->getTable(), 'public_view_token')) {
+            return null;
+        }
+
+        if (filled($this->public_view_token)) {
+            return $this->public_view_token;
+        }
+
+        $token = Str::random(48);
+
+        try {
+            $this->newQuery()
+                ->whereKey($this->getKey())
+                ->update(['public_view_token' => $token]);
+
+            $this->setAttribute('public_view_token', $token);
+            $this->syncOriginalAttribute('public_view_token');
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return $token;
+    }
+
+    public function isValidPublicViewToken(?string $token): bool
+    {
+        if (blank($token) || ! Schema::hasColumn($this->getTable(), 'public_view_token')) {
+            return false;
+        }
+
+        return filled($this->public_view_token) && hash_equals($this->public_view_token, $token);
     }
 }

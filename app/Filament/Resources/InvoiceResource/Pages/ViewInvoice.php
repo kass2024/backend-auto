@@ -5,6 +5,7 @@ namespace App\Filament\Resources\InvoiceResource\Pages;
 use App\Filament\Resources\InvoiceResource;
 use App\Filament\Support\InvoiceFlashNotifications;
 use App\Filament\Support\Money;
+use App\Filament\Support\InvoiceEmailUi;
 use App\Models\Invoice;
 use App\Services\InvoiceService;
 use Filament\Actions;
@@ -93,14 +94,14 @@ class ViewInvoice extends ViewRecord
                 ->url(fn (Invoice $record) => route('filament.admin.invoices.print', $record))
                 ->openUrlInNewTab(),
             Actions\Action::make('emailCustomer')
-                ->label(fn (Invoice $record): string => $record->wasEmailedToCustomer() ? 'Resend email' : 'Email customer')
+                ->label(fn (Invoice $record): string => InvoiceEmailUi::actionLabel($record->wasEmailedToCustomer()))
                 ->icon('heroicon-o-paper-airplane')
-                ->color('success')
+                ->color(fn (Invoice $record): string => $record->wasEmailedToCustomer() ? 'warning' : 'success')
                 ->visible(fn (Invoice $record) => in_array($record->status, ['draft', 'sent', 'overdue'], true))
                 ->requiresConfirmation()
-                ->modalHeading(fn (Invoice $record): string => $record->wasEmailedToCustomer() ? 'Resend invoice email' : 'Email invoice to customer')
-                ->modalDescription(fn (Invoice $record): string => 'Send invoice '.$record->invoice_number.' to '.$record->user?->email.'?')
-                ->modalSubmitActionLabel(fn (Invoice $record): string => $record->wasEmailedToCustomer() ? 'Resend' : 'Send email')
+                ->modalHeading(fn (Invoice $record): string => InvoiceEmailUi::modalHeading($record->wasEmailedToCustomer()))
+                ->modalDescription(fn (Invoice $record): string => InvoiceEmailUi::confirmMessage($record->user?->email ?? 'the customer', $record->wasEmailedToCustomer()))
+                ->modalSubmitActionLabel(fn (Invoice $record): string => InvoiceEmailUi::actionLabel($record->wasEmailedToCustomer()))
                 ->action(function (): void {
                     $wasResend = $this->record->wasEmailedToCustomer();
 
@@ -111,6 +112,7 @@ class ViewInvoice extends ViewRecord
                             ->danger()
                             ->title('Email failed')
                             ->body($e->getMessage())
+                            ->duration(12000)
                             ->send();
 
                         return;
@@ -120,8 +122,12 @@ class ViewInvoice extends ViewRecord
 
                     Notification::make()
                         ->success()
-                        ->title($wasResend ? 'Invoice resent successfully' : 'Invoice email sent successfully')
-                        ->body('Sent to '.$sent->user?->email.'. Check inbox and spam folder.')
+                        ->title(InvoiceEmailUi::successTitle($wasResend))
+                        ->body(InvoiceEmailUi::successBody(
+                            $sent->invoice_number,
+                            $sent->user?->email ?? '',
+                            $sent->wantsStripePayment() && ! $sent->isPaid(),
+                        ))
                         ->duration(12000)
                         ->send();
                 }),
