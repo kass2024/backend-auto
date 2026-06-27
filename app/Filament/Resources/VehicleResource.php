@@ -33,30 +33,83 @@ class VehicleResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
+    public static function canViewAny(): bool
+    {
+        return false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
+    public static function canEdit($record): bool
+    {
+        return false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return false;
+    }
+
     public static function form(Form $form): Form
     {
         return $form->schema([
-            Forms\Components\Select::make('user_id')->relationship('user', 'name', fn ($q) => $q->where('role', 'customer'))->required()->searchable(),
-            Forms\Components\TextInput::make('plate_number')->required(),
-            Forms\Components\TextInput::make('make')->required(),
-            Forms\Components\TextInput::make('model')->required(),
-            Forms\Components\TextInput::make('year')->numeric(),
-            Forms\Components\TextInput::make('vin')->maxLength(17),
-            Forms\Components\TextInput::make('color'),
-            Forms\Components\TextInput::make('mileage')->numeric(),
-            Forms\Components\Textarea::make('notes')->columnSpanFull(),
+            Forms\Components\Section::make('Vehicle details')
+                ->description('Record vehicles here — link to a customer later when creating their account.')
+                ->schema([
+                    Forms\Components\TextInput::make('plate_number')
+                        ->label('Plate number')
+                        ->required()
+                        ->maxLength(255),
+                    Forms\Components\TextInput::make('make')
+                        ->required()
+                        ->maxLength(255),
+                    Forms\Components\TextInput::make('model')
+                        ->required()
+                        ->maxLength(255),
+                    Forms\Components\TextInput::make('year')
+                        ->numeric()
+                        ->minValue(1900)
+                        ->maxValue((int) date('Y') + 1),
+                    Forms\Components\TextInput::make('color')
+                        ->maxLength(255),
+                    Forms\Components\TextInput::make('mileage')
+                        ->numeric()
+                        ->integer()
+                        ->minValue(0),
+                    Forms\Components\Textarea::make('notes')
+                        ->columnSpanFull(),
+                ])
+                ->columns(2),
         ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table->columns([
-            Tables\Columns\TextColumn::make('user.name')->label('Owner')->searchable(),
-            Tables\Columns\TextColumn::make('plate_number')->searchable(),
-            Tables\Columns\TextColumn::make('make'),
-            Tables\Columns\TextColumn::make('model'),
-            Tables\Columns\TextColumn::make('year'),
-            Tables\Columns\TextColumn::make('mileage'),
+            Tables\Columns\TextColumn::make('plate_number')
+                ->label('Plate number')
+                ->searchable()
+                ->sortable(),
+            Tables\Columns\TextColumn::make('make')
+                ->searchable()
+                ->sortable(),
+            Tables\Columns\TextColumn::make('model')
+                ->searchable()
+                ->sortable(),
+            Tables\Columns\TextColumn::make('year')
+                ->sortable(),
+            Tables\Columns\TextColumn::make('color')
+                ->toggleable(isToggledHiddenByDefault: true),
+            Tables\Columns\TextColumn::make('mileage')
+                ->sortable(),
         ])->actions([
             Tables\Actions\ViewAction::make(),
             Tables\Actions\EditAction::make(),

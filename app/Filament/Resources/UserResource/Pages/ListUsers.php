@@ -2,19 +2,28 @@
 
 namespace App\Filament\Resources\UserResource\Pages;
 
+use App\Filament\Pages\BasePrintableListRecords;
 use App\Filament\Resources\UserResource;
 use Filament\Actions;
-use Filament\Resources\Pages\ListRecords;
 
-class ListUsers extends ListRecords
+class ListUsers extends BasePrintableListRecords
 {
     protected static string $resource = UserResource::class;
 
-    protected function getHeaderActions(): array
+    protected function getListDocumentTitle(): string
+    {
+        return 'CUSTOMER LIST';
+    }
+
+    protected function getListPrintKey(): string
+    {
+        return 'customers';
+    }
+
+    protected function getResourceHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
-                ->visible(fn () => auth()->user()?->isFullAdmin() ?? false),
+            Actions\CreateAction::make(),
         ];
     }
 }

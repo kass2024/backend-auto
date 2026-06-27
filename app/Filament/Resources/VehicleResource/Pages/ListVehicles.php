@@ -2,15 +2,25 @@
 
 namespace App\Filament\Resources\VehicleResource\Pages;
 
+use App\Filament\Pages\BasePrintableListRecords;
 use App\Filament\Resources\VehicleResource;
 use Filament\Actions;
-use Filament\Resources\Pages\ListRecords;
 
-class ListVehicles extends ListRecords
+class ListVehicles extends BasePrintableListRecords
 {
     protected static string $resource = VehicleResource::class;
 
-    protected function getHeaderActions(): array
+    protected function getListDocumentTitle(): string
+    {
+        return 'VEHICLE REGISTER';
+    }
+
+    protected function getListPrintKey(): string
+    {
+        return 'vehicles';
+    }
+
+    protected function getResourceHeaderActions(): array
     {
         return [
             Actions\CreateAction::make(),

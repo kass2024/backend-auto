@@ -43,6 +43,7 @@ echo "==> Session / CSRF domains (required for login from main site)"
 set_env "SESSION_DOMAIN" ".neamee-autotechsolutions.com"
 set_env "SESSION_SECURE_COOKIE" "true"
 set_env "SANCTUM_STATEFUL_DOMAINS" "neamee-autotechsolutions.com,www.neamee-autotechsolutions.com"
+set_env "AUTO_MIGRATE" "true"
 
 # routes/health.php
 mkdir -p routes
@@ -65,22 +66,22 @@ rm -f bootstrap/cache/routes*.php 2>/dev/null || true
 chmod 644 .htaccess public/.htaccess 2>/dev/null || true
 [ -f public/index.cpanel.php ] && cp public/index.cpanel.php public/index.php
 
-# Composer
-if [ ! -f vendor/autoload.php ]; then
-  if command -v composer >/dev/null 2>&1; then
-    composer install --no-dev --optimize-autoloader
-  elif [ -f composer.phar ]; then
-    $PHP composer.phar install --no-dev --optimize-autoloader
-  else
-    curl -sS https://getcomposer.org/installer | $PHP
-    $PHP composer.phar install --no-dev --optimize-autoloader
-  fi
+# Composer (install / update — includes stripe/stripe-php from composer.lock)
+if command -v composer >/dev/null 2>&1; then
+  COMPOSER_CMD="composer"
+elif [ -f composer.phar ]; then
+  COMPOSER_CMD="$PHP composer.phar"
 else
-  if command -v composer >/dev/null 2>&1; then
-    composer dump-autoload -o --no-scripts 2>/dev/null || true
-  elif [ -f composer.phar ]; then
-    $PHP composer.phar dump-autoload -o --no-scripts 2>/dev/null || true
-  fi
+  curl -sS https://getcomposer.org/installer | $PHP
+  COMPOSER_CMD="$PHP composer.phar"
+fi
+
+echo "==> $COMPOSER_CMD install --no-dev --optimize-autoloader"
+$COMPOSER_CMD install --no-dev --optimize-autoloader
+
+if [ ! -f vendor/stripe/stripe-php/init.php ]; then
+  echo "ERROR: Stripe SDK missing after composer install. Check composer.lock is deployed."
+  exit 1
 fi
 
 $PHP artisan migrate --force

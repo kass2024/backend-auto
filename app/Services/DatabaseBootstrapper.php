@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use App\Models\User;
+use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -20,14 +20,12 @@ class DatabaseBootstrapper
             return;
         }
 
-        $cacheKey = 'database.bootstrap.v1';
-
         try {
             self::ensureDatabaseExists();
 
-            if (! Cache::has($cacheKey)) {
+            if (self::hasPendingMigrations()) {
                 Artisan::call('migrate', ['--force' => true]);
-                Cache::put($cacheKey, true, now()->addHour());
+                Log::info('Database bootstrap: pending migrations applied.');
             }
 
             if (Schema::hasTable('users') && User::query()->count() === 0) {
@@ -36,6 +34,21 @@ class DatabaseBootstrapper
         } catch (Throwable $e) {
             Log::warning('Database bootstrap: '.$e->getMessage());
         }
+    }
+
+    public static function hasPendingMigrations(): bool
+    {
+        /** @var Migrator $migrator */
+        $migrator = app(Migrator::class);
+
+        if (! $migrator->repositoryExists()) {
+            return true;
+        }
+
+        $files = $migrator->getMigrationFiles(database_path('migrations'));
+        $ran = $migrator->getRepository()->getRan();
+
+        return count(array_diff(array_keys($files), $ran)) > 0;
     }
 
     public static function ensureDatabaseExists(): void

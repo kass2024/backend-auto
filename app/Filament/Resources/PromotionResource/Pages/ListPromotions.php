@@ -2,15 +2,25 @@
 
 namespace App\Filament\Resources\PromotionResource\Pages;
 
+use App\Filament\Pages\BasePrintableListRecords;
 use App\Filament\Resources\PromotionResource;
 use Filament\Actions;
-use Filament\Resources\Pages\ListRecords;
 
-class ListPromotions extends ListRecords
+class ListPromotions extends BasePrintableListRecords
 {
     protected static string $resource = PromotionResource::class;
 
-    protected function getHeaderActions(): array
+    protected function getListDocumentTitle(): string
+    {
+        return 'PROMOTIONS';
+    }
+
+    protected function getListPrintKey(): string
+    {
+        return 'promotions';
+    }
+
+    protected function getResourceHeaderActions(): array
     {
         return [
             Actions\CreateAction::make(),

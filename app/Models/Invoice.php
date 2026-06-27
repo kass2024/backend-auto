@@ -9,19 +9,25 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Invoice extends Model
 {
     protected $fillable = [
-        'invoice_number', 'user_id', 'job_card_id',
-        'subtotal', 'tax_rate', 'tax_amount', 'discount', 'total',
-        'status', 'payment_method', 'paid_at', 'due_date',
+        'invoice_number', 'user_id', 'job_card_id', 'vehicle_id',
+        'subtotal', 'labor_total', 'parts_total', 'tax_rate', 'tax_amount', 'discount', 'total',
+        'status', 'payment_method', 'paid_at', 'due_date', 'work_description',
+        'stripe_checkout_session_id', 'stripe_payment_url',
+        'time_received', 'time_promised', 'odometer',
     ];
 
     protected $casts = [
         'subtotal' => 'decimal:2',
+        'labor_total' => 'decimal:2',
+        'parts_total' => 'decimal:2',
         'tax_rate' => 'decimal:2',
         'tax_amount' => 'decimal:2',
         'discount' => 'decimal:2',
         'total' => 'decimal:2',
         'paid_at' => 'datetime',
         'due_date' => 'date',
+        'time_received' => 'datetime',
+        'time_promised' => 'datetime',
     ];
 
     public function user(): BelongsTo
@@ -34,8 +40,33 @@ class Invoice extends Model
         return $this->belongsTo(JobCard::class);
     }
 
+    public function vehicle(): BelongsTo
+    {
+        return $this->belongsTo(Vehicle::class);
+    }
+
     public function items(): HasMany
     {
-        return $this->hasMany(InvoiceItem::class);
+        return $this->hasMany(InvoiceItem::class)->orderBy('sort_order');
+    }
+
+    public function partItems(): HasMany
+    {
+        return $this->hasMany(InvoiceItem::class)->where('type', 'part')->orderBy('sort_order');
+    }
+
+    public function serviceItems(): HasMany
+    {
+        return $this->hasMany(InvoiceItem::class)->where('type', 'service')->orderBy('sort_order');
+    }
+
+    public function isPaid(): bool
+    {
+        return $this->status === 'paid';
+    }
+
+    public function isUnpaid(): bool
+    {
+        return in_array($this->status, ['sent', 'overdue', 'draft'], true);
     }
 }

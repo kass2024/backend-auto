@@ -2,7 +2,10 @@
 
 namespace App\Providers\Filament;
 
+use App\Http\Controllers\Admin\InvoicePrintController;
+use App\Http\Controllers\Admin\ListPrintController;
 use Filament\Http\Middleware\Authenticate;
+use Illuminate\Support\Facades\Route;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
@@ -115,6 +118,14 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])
+            ->routes(function () {
+                Route::middleware([Authenticate::class])
+                    ->get('/lists/print/{key}', ListPrintController::class)
+                    ->name('list.print');
+                Route::middleware([Authenticate::class])
+                    ->get('/invoices/{invoice}/print', InvoicePrintController::class)
+                    ->name('invoice.print');
+            });
     }
 }

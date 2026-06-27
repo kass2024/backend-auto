@@ -27,10 +27,8 @@ class VerifyAdminMenus extends Command
 
         $resources = [
             \App\Filament\Resources\BookingResource\Pages\ListBookings::class,
-            \App\Filament\Resources\JobCardResource\Pages\ListJobCards::class,
             \App\Filament\Resources\QuoteRequestResource\Pages\ListQuoteRequests::class,
             \App\Filament\Resources\UserResource\Pages\ListUsers::class,
-            \App\Filament\Resources\VehicleResource\Pages\ListVehicles::class,
             \App\Filament\Resources\InvoiceResource\Pages\ListInvoices::class,
             \App\Filament\Resources\StaffUserResource\Pages\ListStaffUsers::class,
             \App\Filament\Resources\PartResource\Pages\ListParts::class,

@@ -13,7 +13,13 @@ class InvoiceSentMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public Invoice $invoice) {}
+    public ?string $paymentUrl;
+
+    public function __construct(public Invoice $invoice)
+    {
+        $this->invoice->load(['partItems', 'serviceItems', 'user', 'vehicle', 'jobCard.vehicle']);
+        $this->paymentUrl = $invoice->stripe_payment_url;
+    }
 
     public function envelope(): Envelope
     {
@@ -26,6 +32,9 @@ class InvoiceSentMail extends Mailable
     {
         return new Content(
             markdown: 'emails.invoice-sent',
+            with: [
+                'paymentUrl' => $this->paymentUrl,
+            ],
         );
     }
 }

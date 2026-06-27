@@ -62,6 +62,11 @@ if [ ! -f vendor/autoload.php ]; then
   exit 1
 fi
 
+if [ ! -f vendor/stripe/stripe-php/init.php ]; then
+  echo "ERROR: Stripe SDK missing after composer install. Upload composer.lock and run again."
+  exit 1
+fi
+
 echo "==> Laravel setup"
 $PHP artisan migrate --force
 $PHP artisan db:seed --class=GarageSeeder --force
