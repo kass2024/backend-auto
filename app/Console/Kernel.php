@@ -13,7 +13,9 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         $schedule->command('appointments:send-reminders')->dailyAt('09:00');
-        $schedule->command('invoices:send-service-reminders')->everyMinute();
+        // cPanel hosts often limit cron to every 5 minutes — one job runs all reminder types
+        // (minutes/hours/days alerts + weekly/monthly/yearly repeats) via sendDueReminders().
+        $schedule->command('invoices:send-service-reminders')->everyFiveMinutes();
     }
 
     /**

@@ -52,12 +52,55 @@ bash cpanel-fix-api.sh
 php artisan neamee:verify-admin-menus
 ```
 
-### Cron (appointment email reminders)
+### Cron (cPanel — one job for all reminders)
 
-Add to cPanel cron (daily at 9 AM):
+Your host allows cron **at most every 5 minutes**. Use **one** cron job; Laravel handles
+all reminder types (5 min / 1 hr / 5 days before, plus weekly / monthly / yearly repeats).
 
+#### cPanel → Cron Jobs → Add New Cron Job
+
+| Field | Value |
+|-------|-------|
+| **Minute** | `*/5` (or Common Settings → Every 5 minutes) |
+| **Hour** | `*` |
+| **Day** | `*` |
+| **Month** | `*` |
+| **Weekday** | `*` |
+| **Command** | see below |
+
+**Command** (matches cPanel PHP example path):
+
+```bash
+/usr/local/bin/php /home/visawgnz/api.neamee-autotechsolutions.com/artisan schedule:run >> /dev/null 2>&1
 ```
-cd ~/api.neamee-autotechsolutions.com && php artisan schedule:run >> /dev/null 2>&1
+
+**With logging** (optional):
+
+```bash
+/usr/local/bin/php /home/visawgnz/api.neamee-autotechsolutions.com/artisan schedule:run >> /home/visawgnz/api.neamee-autotechsolutions.com/storage/logs/cron.log 2>&1
 ```
 
-Or run every minute for Laravel scheduler. Reminders send for confirmed appointments **tomorrow**.
+Click **Add New Cron Job**.
+
+#### How weekly / monthly repeats work
+
+You only set repeat in the admin modal (Once, Weekly, Monthly, etc.). The cron does not
+need a separate job per interval. Each run:
+
+1. Sends any due early/due reminders for all invoices
+2. After a service date passes, bumps `next_service_at` to the next week/month/year
+
+#### Verify on SSH
+
+```bash
+cd ~/api.neamee-autotechsolutions.com
+php artisan schedule:list
+php artisan invoices:send-service-reminders
+```
+
+Scheduled tasks:
+
+| Command | When |
+|---------|------|
+| `invoices:send-service-reminders` | Every 5 minutes |
+| `appointments:send-reminders` | Daily 09:00 |

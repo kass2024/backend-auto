@@ -1,0 +1,25 @@
+# cPanel → Cron Jobs → Add New Cron Job
+# (Host limit: not more often than every 5 minutes)
+
+## Schedule (use dropdown OR type manually)
+Minute:  */5
+Hour:    *
+Day:     *
+Month:   *
+Weekday: *
+
+(Common Settings → "Every 5 minutes" if available)
+
+## Command (paste in the Command box)
+/usr/local/bin/php /home/visawgnz/api.neamee-autotechsolutions.com/artisan schedule:run >> /dev/null 2>&1
+
+## Optional — log output for debugging
+/usr/local/bin/php /home/visawgnz/api.neamee-autotechsolutions.com/artisan schedule:run >> /home/visawgnz/api.neamee-autotechsolutions.com/storage/logs/cron.log 2>&1
+
+## What this single cron does
+Laravel schedule:run checks the app every 5 minutes and runs:
+  - invoices:send-service-reminders  → early alerts (5 min / 1 hr / 5 days) + repeat (weekly, monthly, etc.)
+  - appointments:send-reminders      → daily at 9:00 AM
+
+You do NOT need separate cron jobs per repeat interval. Weekly/monthly/yearly
+is stored on each invoice and advanced automatically after the service date passes.
