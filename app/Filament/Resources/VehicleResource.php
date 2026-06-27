@@ -4,8 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Filament\Concerns\RestrictsStaffAccess;
 use App\Filament\Resources\VehicleResource\Pages;
-use App\Filament\Support\AdminTableActions;
-use App\Filament\Resources\UserResource;
 use App\Models\Vehicle;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -116,23 +114,12 @@ class VehicleResource extends Resource
                 ->toggleable(isToggledHiddenByDefault: true),
             Tables\Columns\TextColumn::make('mileage')
                 ->sortable(),
-        ])->actions([
-            Tables\Actions\Action::make('customer')
-                ->label('Customer')
-                ->icon('heroicon-o-user')
-                ->color('gray')
-                ->url(fn (Vehicle $record) => $record->user_id
-                    ? UserResource::getUrl('edit', ['record' => $record->user_id])
-                    : null)
-                ->visible(fn (Vehicle $record): bool => filled($record->user_id))
-                ->openUrlInNewTab(false),
-            AdminTableActions::delete('vehicle'),
+            Tables\Columns\ViewColumn::make('actions')
+                ->label('Actions')
+                ->view('filament.tables.columns.vehicle-actions'),
         ])
-          ->bulkActions([
-              Tables\Actions\BulkActionGroup::make([
-                  AdminTableActions::deleteBulk('vehicles'),
-              ]),
-          ])
+          ->actions([])
+          ->bulkActions([])
           ->defaultSort('plate_number');
     }
 

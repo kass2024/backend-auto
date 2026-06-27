@@ -94,6 +94,25 @@ class InvoiceResource extends Resource
                         default => 'gray',
                     }),
                 Tables\Columns\TextColumn::make('due_date')->date()->sortable(),
+                Tables\Columns\TextColumn::make('next_service_at')
+                    ->label('Next service')
+                    ->dateTime('M j, Y g:i A')
+                    ->placeholder('—')
+                    ->description(fn (Invoice $record): ?string => $record->hasServiceReminder()
+                        ? collect([
+                            match ($record->next_service_reminder_unit) {
+                                'minutes' => '5 min before',
+                                'hours' => '1 hr before',
+                                'days' => '5 days before + on date',
+                                default => null,
+                            },
+                            $record->next_service_repeat && $record->next_service_repeat !== 'none'
+                                ? \App\Services\InvoiceServiceReminderService::repeatLabel($record->next_service_repeat)
+                                : null,
+                        ])->filter()->implode(' · ')
+                        : null)
+                    ->sortable()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('paid_at')->dateTime()->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
                 Tables\Columns\ViewColumn::make('actions')

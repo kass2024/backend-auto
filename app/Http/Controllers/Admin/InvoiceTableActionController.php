@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Filament\Resources\InvoiceResource;
 use App\Filament\Support\InvoiceEmailUi;
-use App\Filament\Support\InvoiceFlashNotifications;
+use App\Filament\Support\AdminFlashNotifications;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Services\InvoiceService;
@@ -21,7 +21,7 @@ class InvoiceTableActionController extends Controller
 
             $sent = $invoice->fresh();
 
-            InvoiceFlashNotifications::flash(
+            AdminFlashNotifications::flash(
                 'success',
                 InvoiceEmailUi::successTitle($wasEmailedBefore),
                 InvoiceEmailUi::successBody(
@@ -31,7 +31,7 @@ class InvoiceTableActionController extends Controller
                 ),
             );
         } catch (\Throwable $e) {
-            InvoiceFlashNotifications::flash('danger', 'Email failed', $e->getMessage());
+            AdminFlashNotifications::flash('danger', 'Email failed', $e->getMessage());
         }
 
         return redirect()->to(InvoiceResource::getUrl('index'));
@@ -42,9 +42,9 @@ class InvoiceTableActionController extends Controller
         try {
             app(InvoiceService::class)->markPaid($invoice);
 
-            InvoiceFlashNotifications::flash('success', 'Invoice marked as paid', 'The invoice status has been updated.');
+            AdminFlashNotifications::flash('success', 'Invoice marked as paid', 'The invoice status has been updated.');
         } catch (\Throwable $e) {
-            InvoiceFlashNotifications::flash('danger', 'Could not mark invoice as paid', $e->getMessage());
+            AdminFlashNotifications::flash('danger', 'Could not mark invoice as paid', $e->getMessage());
         }
 
         return redirect()->to(InvoiceResource::getUrl('index'));
@@ -55,9 +55,9 @@ class InvoiceTableActionController extends Controller
         try {
             app(InvoiceService::class)->markUnpaid($invoice);
 
-            InvoiceFlashNotifications::flash('success', 'Invoice marked as unpaid', 'The invoice status has been updated.');
+            AdminFlashNotifications::flash('success', 'Invoice marked as unpaid', 'The invoice status has been updated.');
         } catch (\Throwable $e) {
-            InvoiceFlashNotifications::flash('danger', 'Could not mark invoice as unpaid', $e->getMessage());
+            AdminFlashNotifications::flash('danger', 'Could not mark invoice as unpaid', $e->getMessage());
         }
 
         return redirect()->to(InvoiceResource::getUrl('index'));
@@ -68,9 +68,9 @@ class InvoiceTableActionController extends Controller
         try {
             $invoice->delete();
 
-            InvoiceFlashNotifications::flash('success', 'Invoice deleted successfully', 'The invoice has been removed.');
+            AdminFlashNotifications::flash('success', 'Invoice deleted successfully', 'The invoice has been removed.');
         } catch (\Throwable $e) {
-            InvoiceFlashNotifications::flash('danger', 'Delete failed', $e->getMessage());
+            AdminFlashNotifications::flash('danger', 'Delete failed', $e->getMessage());
         }
 
         return redirect()->to(InvoiceResource::getUrl('index'));

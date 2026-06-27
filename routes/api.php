@@ -38,4 +38,6 @@ Route::middleware(['auth:sanctum', 'customer'])->prefix('portal')->group(functio
     Route::get('/tracking', [PortalController::class, 'tracking']);
     Route::get('/invoices', [PortalController::class, 'invoices']);
     Route::post('/reminders/{booking}/dismiss', [PortalController::class, 'dismissReminder']);
+    Route::post('/reminders/service/{invoice}/dismiss', [PortalController::class, 'dismissServiceReminder']);
+    Route::post('/notifications/{notification}/dismiss', [PortalController::class, 'dismissNotification']);
 });

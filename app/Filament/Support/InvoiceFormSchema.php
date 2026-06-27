@@ -31,13 +31,15 @@ class InvoiceFormSchema
                             'cancelled' => 'Cancelled',
                         ])
                         ->required()
-                        ->default('sent')
-                        ->live(),
+                        ->default('paid')
+                        ->live()
+                        ->visible(fn (string $operation): bool => $operation !== 'create')
+                        ->helperText('On create, invoices are marked paid automatically unless Credit Card (Stripe) is chosen.'),
                     Forms\Components\DatePicker::make('due_date')->default(now()->addDays(14))->required(),
                     Forms\Components\Toggle::make('send_to_customer')
                         ->label('Email invoice to customer on save')
                         ->default(true)
-                        ->helperText('Sends the branded invoice email automatically. Stripe link is only included for unpaid invoices set to Credit Card (Stripe).')
+                        ->helperText('Sends the branded invoice email automatically. Stripe link is only included when Credit Card (Stripe) is selected.')
                         ->visible(fn (string $operation): bool => $operation === 'create'),
                 ])
                 ->columns(2),
@@ -176,16 +178,18 @@ class InvoiceFormSchema
                             'credit_card' => 'Credit Card (Stripe)',
                             'mobile_money' => 'Mobile Money',
                         ])
-                        ->nullable()
+                        ->default('cash')
                         ->live()
-                        ->helperText(fn (Get $get): string => match (true) {
+                        ->helperText(fn (Get $get, string $operation): string => match (true) {
+                            $operation === 'create' && $get('payment_method') === 'credit_card' => 'Invoice stays unpaid until the customer pays via Stripe. A payment link is included in the email.',
+                            $operation === 'create' => 'Invoice is marked paid on save. No Stripe link in the customer email.',
                             $get('status') === 'paid' => 'How the customer paid — shown on the invoice.',
-                            filled($get('payment_method')) && $get('payment_method') !== 'credit_card' => 'Customer email will not include a Stripe payment link.',
-                            default => 'Leave empty or choose Credit Card (Stripe) to include an online payment link in customer emails.',
+                            $get('payment_method') === 'credit_card' => 'Customer email will include a Stripe payment link while the invoice is unpaid.',
+                            default => 'Choose Credit Card (Stripe) to collect payment online before marking paid.',
                         })
-                        ->required(fn (Get $get) => $get('status') === 'paid'),
+                        ->required(fn (Get $get, string $operation): bool => $operation === 'create' || $get('status') === 'paid'),
                     Forms\Components\DateTimePicker::make('paid_at')
-                        ->visible(fn (Get $get) => $get('status') === 'paid'),
+                        ->visible(fn (Get $get, string $operation): bool => $operation !== 'create' && $get('status') === 'paid'),
                 ])
                 ->columns(3),
         ];
@@ -358,7 +362,7 @@ class InvoiceFormSchema
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
-    public static function applyComputedTotals(array $data): array
+    public static function applyComputedTotals(array $data, bool $skipPaymentDefaults = false): array
     {
         $partsTotal = self::sumLines($data['part_lines'] ?? []);
         $laborTotal = self::sumLines($data['service_lines'] ?? []);
@@ -374,6 +378,32 @@ class InvoiceFormSchema
         $data['tax_amount'] = $taxAmount;
         $data['total'] = $total;
 
+        if ($skipPaymentDefaults) {
+            return $data;
+        }
+
+        return self::applyPaymentDefaults($data);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    public static function applyPaymentDefaults(array $data, string $operation = 'edit'): array
+    {
+        if ($operation === 'create') {
+            if (($data['payment_method'] ?? '') === 'credit_card') {
+                $data['status'] = 'sent';
+                $data['paid_at'] = null;
+            } else {
+                $data['status'] = 'paid';
+                $data['paid_at'] = $data['paid_at'] ?? now();
+                $data['payment_method'] = $data['payment_method'] ?? 'cash';
+            }
+
+            return $data;
+        }
+
         if (($data['status'] ?? '') === 'paid') {
             if (empty($data['paid_at'])) {
                 $data['paid_at'] = now();
@@ -385,5 +415,17 @@ class InvoiceFormSchema
         }
 
         return $data;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    public static function applyComputedTotalsForCreate(array $data): array
+    {
+        return self::applyPaymentDefaults(
+            self::applyComputedTotals($data, skipPaymentDefaults: true),
+            'create',
+        );
     }
 }

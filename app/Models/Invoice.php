@@ -16,6 +16,9 @@ class Invoice extends Model
         'status', 'payment_method', 'paid_at', 'customer_emailed_at', 'public_view_token', 'due_date', 'work_description',
         'stripe_checkout_session_id', 'stripe_payment_url',
         'time_received', 'time_promised', 'odometer',
+        'next_service_at', 'next_service_reminder_unit', 'next_service_repeat', 'next_service_notes',
+        'next_service_reminder_early_sent_at', 'next_service_reminder_due_sent_at',
+        'next_service_popup_dismissed_at',
     ];
 
     protected $casts = [
@@ -31,6 +34,10 @@ class Invoice extends Model
         'due_date' => 'date',
         'time_received' => 'datetime',
         'time_promised' => 'datetime',
+        'next_service_at' => 'datetime',
+        'next_service_reminder_early_sent_at' => 'datetime',
+        'next_service_reminder_due_sent_at' => 'datetime',
+        'next_service_popup_dismissed_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
@@ -88,15 +95,7 @@ class Invoice extends Model
     /** Whether customer emails should include a Stripe payment link. */
     public function wantsStripePayment(): bool
     {
-        if ($this->isPaid()) {
-            return false;
-        }
-
-        if (blank($this->payment_method)) {
-            return true;
-        }
-
-        return $this->payment_method === 'credit_card';
+        return ! $this->isPaid() && $this->payment_method === 'credit_card';
     }
 
     public function wasEmailedToCustomer(): bool
@@ -152,6 +151,11 @@ class Invoice extends Model
         }
 
         return $token;
+    }
+
+    public function hasServiceReminder(): bool
+    {
+        return $this->next_service_at !== null && filled($this->next_service_reminder_unit);
     }
 
     public function isValidPublicViewToken(?string $token): bool

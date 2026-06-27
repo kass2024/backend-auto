@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\CustomerNotification;
+use App\Models\Invoice;
 use App\Models\JobCard;
 use App\Services\AppointmentService;
+use App\Services\InvoiceServiceReminderService;
 use Illuminate\Http\Request;
 
 class PortalController extends Controller
@@ -28,7 +31,17 @@ class PortalController extends Controller
             ->first();
 
         $appointments = app(AppointmentService::class);
-        $reminders = $appointments->buildRemindersForUser($user);
+        $serviceReminders = app(InvoiceServiceReminderService::class);
+
+        $appointmentReminders = $appointments->buildRemindersForUser($user);
+        $upcomingServiceReminders = $serviceReminders->buildUpcomingRemindersForUser($user);
+        $notifications = $serviceReminders->buildNotificationFeedForUser($user);
+
+        $reminders = collect($notifications)
+            ->merge($upcomingServiceReminders)
+            ->merge($appointmentReminders)
+            ->values()
+            ->all();
 
         return response()->json([
             'loyalty_points' => $user->loyalty_points,
@@ -40,7 +53,8 @@ class PortalController extends Controller
             'pending_invoices' => $user->invoices()->whereIn('status', ['sent', 'overdue'])->count(),
             'total_spent' => (float) $user->invoices()->where('status', 'paid')->sum('total'),
             'reminders' => $reminders,
-            'popup_reminder' => collect($reminders)->firstWhere('show_popup', true),
+            'notifications' => $notifications,
+            'popup_reminder' => $serviceReminders->pickPopupReminder($user, $appointmentReminders),
             'active_job' => $activeJob ? [
                 'id' => $activeJob->id,
                 'job_number' => $activeJob->job_number,
@@ -129,6 +143,24 @@ class PortalController extends Controller
         app(AppointmentService::class)->dismissPopup($booking);
 
         return response()->json(['message' => 'Reminder dismissed.']);
+    }
+
+    public function dismissServiceReminder(Request $request, Invoice $invoice)
+    {
+        abort_unless($invoice->user_id === $request->user()->id, 403);
+
+        app(InvoiceServiceReminderService::class)->dismissPopup($invoice);
+
+        return response()->json(['message' => 'Service reminder dismissed.']);
+    }
+
+    public function dismissNotification(Request $request, CustomerNotification $notification)
+    {
+        abort_unless($notification->user_id === $request->user()->id, 403);
+
+        app(InvoiceServiceReminderService::class)->dismissNotification($notification);
+
+        return response()->json(['message' => 'Notification dismissed.']);
     }
 
     private function loyaltyTier(int $points): string

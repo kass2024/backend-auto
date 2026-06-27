@@ -2,7 +2,9 @@
 
 namespace App\Providers\Filament;
 
+use App\Http\Controllers\Admin\CrmTableActionController;
 use App\Http\Controllers\Admin\InvoicePrintController;
+use App\Http\Controllers\Admin\InvoiceServiceReminderController;
 use App\Http\Controllers\Admin\InvoiceTableActionController;
 use App\Http\Controllers\Admin\ListPrintController;
 use Filament\Http\Middleware\Authenticate;
@@ -103,10 +105,25 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->renderHook(
                 'panels::head.end',
-                fn (): string => Blade::render(
-                    '<link rel="stylesheet" href="{{ asset(\'css/filament-admin.css\') }}?v=19">'
-                    .'<script>document.addEventListener("DOMContentLoaded",function(){document.querySelectorAll(".fi-modal:not(#database-notifications)").forEach(function(m){var w=m.querySelector(".fi-modal-window");if(w&&w.classList.contains("hidden")&&m.id){window.dispatchEvent(new CustomEvent("close-modal",{detail:{id:m.id}}));}});});</script>'
-                )
+                function (): string {
+                    $assets = '<link rel="stylesheet" href="'.asset('css/filament-admin.css').'?v=23">'
+                        .'<script>document.addEventListener("DOMContentLoaded",function(){document.querySelectorAll(".fi-modal:not(#database-notifications)").forEach(function(m){var w=m.querySelector(".fi-modal-window");if(w&&w.classList.contains("hidden")&&m.id){window.dispatchEvent(new CustomEvent("close-modal",{detail:{id:m.id}}));}});});</script>';
+
+                    if (request()->routeIs('filament.admin.resources.invoices.index')) {
+                        $assets .= '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">'
+                            .'<link rel="stylesheet" href="'.asset('css/invoice-reminder-modal.css').'?v=2">'
+                            .'<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>'
+                            .'<script src="'.asset('js/invoice-reminder-modal.js').'?v=3" defer></script>';
+                    }
+
+                    return $assets;
+                }
+            )
+            ->renderHook(
+                'panels::body.end',
+                fn (): string => request()->routeIs('filament.admin.resources.invoices.index')
+                    ? view('filament.partials.invoice-service-reminder-modal')->render()
+                    : ''
             )
             ->middleware([
                 EncryptCookies::class,
@@ -136,6 +153,22 @@ class AdminPanelProvider extends PanelProvider
                         Route::post('mark-paid', [InvoiceTableActionController::class, 'markPaid'])->name('mark-paid');
                         Route::post('mark-unpaid', [InvoiceTableActionController::class, 'markUnpaid'])->name('mark-unpaid');
                         Route::delete('/', [InvoiceTableActionController::class, 'destroy'])->name('destroy');
+                        Route::get('service-reminder', [InvoiceServiceReminderController::class, 'show'])->name('service-reminder');
+                        Route::post('service-reminder', [InvoiceServiceReminderController::class, 'store'])->name('service-reminder.store');
+                        Route::post('service-reminder/send-now', [InvoiceServiceReminderController::class, 'sendNow'])->name('service-reminder.send-now');
+                        Route::delete('service-reminder', [InvoiceServiceReminderController::class, 'destroy'])->name('service-reminder.destroy');
+                    });
+                Route::middleware([Authenticate::class])
+                    ->prefix('vehicles/{vehicle}')
+                    ->name('vehicles.')
+                    ->group(function () {
+                        Route::delete('/', [CrmTableActionController::class, 'destroyVehicle'])->name('destroy');
+                    });
+                Route::middleware([Authenticate::class])
+                    ->prefix('customers/{customer}')
+                    ->name('customers.')
+                    ->group(function () {
+                        Route::delete('/', [CrmTableActionController::class, 'destroyCustomer'])->name('destroy');
                     });
             });
     }

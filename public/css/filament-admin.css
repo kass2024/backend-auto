@@ -607,3 +607,400 @@ body {
     overflow: visible !important;
     vertical-align: top;
 }
+
+/* ── Invoice service reminder modal (inline, not Filament modal) ── */
+body.neamee-reminder-modal-open {
+    overflow: hidden;
+}
+
+.neamee-reminder-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.neamee-reminder-modal[hidden] {
+    display: none !important;
+}
+
+.neamee-reminder-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(4px);
+}
+
+.neamee-reminder-modal__dialog {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    max-height: min(92vh, 720px);
+    overflow-y: auto;
+    background: linear-gradient(180deg, #2a2f38 0%, #1e2229 100%);
+    border: 1px solid rgba(109, 125, 71, 0.35);
+    border-radius: 16px;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+    padding: 22px 22px 18px;
+    color: #eceef0;
+}
+
+.neamee-reminder-modal__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.neamee-reminder-modal__eyebrow {
+    margin: 0 0 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8a9a5f;
+}
+
+.neamee-reminder-modal__title {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #f4f6ef;
+}
+
+.neamee-reminder-modal__meta {
+    margin: 6px 0 0;
+    font-size: 0.85rem;
+    color: #b0b8c1;
+    line-height: 1.4;
+}
+
+.neamee-reminder-modal__close {
+    border: none;
+    background: #333841;
+    color: #d5d9de;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.neamee-reminder-modal__close:hover {
+    background: #434b58;
+    color: #fff;
+}
+
+.neamee-reminder-modal__status {
+    background: rgba(109, 125, 71, 0.15);
+    border: 1px solid rgba(109, 125, 71, 0.35);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+    font-size: 0.88rem;
+    color: #c9d4b3;
+}
+
+.neamee-reminder-modal__section {
+    margin-bottom: 14px;
+}
+
+.neamee-reminder-modal__label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #d5d9de;
+}
+
+.neamee-reminder-modal__hint {
+    margin: 8px 0 0;
+    font-size: 0.78rem;
+    color: #8591a0;
+}
+
+.neamee-reminder-unit-pills {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.neamee-reminder-unit-pill {
+    display: block;
+    cursor: pointer;
+}
+
+.neamee-reminder-unit-pill input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.neamee-reminder-unit-pill span {
+    display: block;
+    padding: 10px 8px 4px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border-radius: 10px 10px 0 0;
+    background: #333841;
+    border: 1px solid #434b58;
+    border-bottom: none;
+    color: #b0b8c1;
+}
+
+.neamee-reminder-unit-pill small {
+    display: block;
+    padding: 0 6px 8px;
+    text-align: center;
+    font-size: 0.68rem;
+    line-height: 1.25;
+    border-radius: 0 0 10px 10px;
+    background: #333841;
+    border: 1px solid #434b58;
+    border-top: none;
+    color: #8591a0;
+}
+
+.neamee-reminder-unit-pill input:checked + span,
+.neamee-reminder-unit-pill input:checked ~ small {
+    border-color: #6d7d47;
+}
+
+.neamee-reminder-unit-pill input:checked + span {
+    background: rgba(109, 125, 71, 0.25);
+    color: #e4e9d8;
+}
+
+.neamee-reminder-unit-pill input:checked ~ small {
+    background: rgba(109, 125, 71, 0.12);
+    color: #a8b886;
+}
+
+.neamee-reminder-modal__tabs {
+    display: flex;
+    gap: 6px;
+    margin: 14px 0 10px;
+}
+
+.neamee-reminder-tab {
+    flex: 1;
+    padding: 9px 10px;
+    border-radius: 8px;
+    border: 1px solid #434b58;
+    background: #333841;
+    color: #b0b8c1;
+    font-weight: 600;
+    font-size: 0.82rem;
+    cursor: pointer;
+}
+
+.neamee-reminder-tab.is-active {
+    background: #556332;
+    border-color: #6d7d47;
+    color: #fff;
+}
+
+.neamee-reminder-tab-panel {
+    display: none;
+    margin-bottom: 12px;
+}
+
+.neamee-reminder-tab-panel.is-active {
+    display: block;
+}
+
+.neamee-reminder-tab-panel input[type="text"],
+.neamee-reminder-tab-panel textarea,
+.neamee-reminder-modal__section textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 11px 12px;
+    border-radius: 10px;
+    border: 1px solid #434b58;
+    background: #1a1f14;
+    color: #f6f7f8;
+    font-size: 0.95rem;
+}
+
+.neamee-reminder-tab-panel textarea,
+.neamee-reminder-modal__section textarea {
+    resize: vertical;
+    min-height: 64px;
+}
+
+.neamee-reminder-presets {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.neamee-reminder-presets button {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #434b58;
+    background: #333841;
+    color: #eceef0;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+}
+
+.neamee-reminder-presets button:hover {
+    border-color: #6d7d47;
+    background: rgba(109, 125, 71, 0.2);
+}
+
+.neamee-reminder-offset-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.neamee-reminder-offset-input {
+    width: 72px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #434b58;
+    background: #1a1f14;
+    color: #fff;
+    font-size: 1rem;
+}
+
+.neamee-reminder-apply-offset {
+    padding: 9px 14px;
+    border-radius: 8px;
+    border: 1px solid #6d7d47;
+    background: #556332;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.neamee-reminder-preview {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid #434b58;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 14px;
+}
+
+.neamee-reminder-preview strong {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #8a9a5f;
+    margin-bottom: 6px;
+}
+
+.neamee-reminder-preview p {
+    margin: 0;
+    font-size: 0.84rem;
+    line-height: 1.45;
+    color: #c9d4b3;
+}
+
+.neamee-reminder-modal__footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.neamee-reminder-modal__footer-spacer {
+    flex: 1;
+}
+
+.neamee-reminder-btn {
+    padding: 10px 16px;
+    border-radius: 9px;
+    font-weight: 600;
+    font-size: 0.88rem;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.neamee-reminder-btn--primary {
+    background: #556332;
+    color: #fff;
+    border-color: #6d7d47;
+}
+
+.neamee-reminder-btn--primary:hover {
+    background: #6d7d47;
+}
+
+.neamee-reminder-btn--secondary {
+    background: rgba(34, 197, 94, 0.15);
+    color: #86efac;
+    border-color: rgba(34, 197, 94, 0.4);
+}
+
+.neamee-reminder-btn--ghost {
+    background: transparent;
+    color: #b0b8c1;
+    border-color: #515c6c;
+}
+
+.neamee-reminder-btn--danger {
+    background: transparent;
+    color: #f87171;
+    border-color: rgba(248, 113, 113, 0.45);
+}
+
+/* Flatpickr dark theme */
+.flatpickr-calendar {
+    background: #2a2f38 !important;
+    border-color: #434b58 !important;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5) !important;
+}
+
+.flatpickr-months .flatpickr-month,
+.flatpickr-current-month .flatpickr-monthDropdown-months,
+.flatpickr-weekdays,
+span.flatpickr-weekday {
+    background: #2a2f38 !important;
+    color: #eceef0 !important;
+}
+
+.flatpickr-day {
+    color: #d5d9de !important;
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange {
+    background: #556332 !important;
+    border-color: #556332 !important;
+}
+
+.flatpickr-day:hover {
+    background: rgba(109, 125, 71, 0.35) !important;
+}
+
+.flatpickr-time input {
+    color: #fff !important;
+    background: #1a1f14 !important;
+}
+
+.neamee-invoice-action--info {
+    border-color: rgba(56, 189, 248, 0.45) !important;
+    color: #7dd3fc !important;
+    background: rgba(56, 189, 248, 0.08) !important;
+}
+
+.neamee-invoice-action--info:hover {
+    background: rgba(56, 189, 248, 0.18) !important;
+    color: #bae6fd !important;
+}

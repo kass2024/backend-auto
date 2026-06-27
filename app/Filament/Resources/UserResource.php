@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Filament\Concerns\RestrictsStaffAccess;
 use App\Filament\Resources\UserResource\Pages;
-use App\Filament\Support\AdminTableActions;
 use App\Models\User;
 use App\Models\Vehicle;
 use Filament\Forms;
@@ -143,17 +142,12 @@ class UserResource extends Resource
                 ->badge()
                 ->color('success'),
             Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
-        ])->actions([
-            Tables\Actions\ViewAction::make(),
-            Tables\Actions\EditAction::make(),
-            AdminTableActions::delete('customer')
-                ->visible(fn (User $record): bool => static::canDelete($record)),
+            Tables\Columns\ViewColumn::make('actions')
+                ->label('Actions')
+                ->view('filament.tables.columns.customer-actions'),
         ])
-          ->bulkActions([
-              Tables\Actions\BulkActionGroup::make([
-                  AdminTableActions::deleteBulk('customers'),
-              ]),
-          ])
+          ->actions([])
+          ->bulkActions([])
           ->defaultSort('created_at', 'desc');
     }
 
