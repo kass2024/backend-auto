@@ -95,6 +95,7 @@ need a separate job per interval. Each run:
 ```bash
 cd ~/api.neamee-autotechsolutions.com
 php artisan schedule:list
+php artisan invoices:list-service-reminders
 php artisan invoices:send-service-reminders
 ```
 

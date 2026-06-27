@@ -113,7 +113,7 @@ class AdminPanelProvider extends PanelProvider
                         $assets .= '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">'
                             .'<link rel="stylesheet" href="'.asset('css/invoice-reminder-modal.css').'?v=2">'
                             .'<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>'
-                            .'<script src="'.asset('js/invoice-reminder-modal.js').'?v=3" defer></script>';
+                            .'<script src="'.asset('js/invoice-reminder-modal.js').'?v=4" defer></script>';
                     }
 
                     return $assets;

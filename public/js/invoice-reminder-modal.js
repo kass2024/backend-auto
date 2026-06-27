@@ -141,6 +141,9 @@
         if (hasReminder && d.nextServiceAt) {
             const repeatTxt = d.repeat && d.repeat !== 'none' ? ` · Repeats: ${repeatLabels[d.repeat] || d.repeat}` : '';
             statusEl.innerHTML = `<strong>Active:</strong> ${d.nextServiceAt}${repeatTxt}`;
+        } else {
+            statusEl.hidden = false;
+            statusEl.innerHTML = '<strong>Not saved yet</strong> — pick a date and click Save reminder.';
         }
         clearBtn.hidden = !hasReminder;
         sendBtn.hidden = !hasReminder;
@@ -154,11 +157,13 @@
 
         notesInput.value = d.notes || '';
 
-        if (d.nextServiceAt) {
+        if (hasReminder && d.nextServiceAt) {
             const parsed = new Date(d.nextServiceAt.replace(' ', 'T'));
             if (!Number.isNaN(parsed.getTime())) setDatetime(parsed);
         } else {
-            setDatetime(addOffset(new Date(), 'days', 7));
+            datetimeInput.value = '';
+            if (picker) picker.clear();
+            updatePreview();
         }
 
         setTab('calendar');
