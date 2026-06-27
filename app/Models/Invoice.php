@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\InvoiceServiceReminderService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -16,7 +17,7 @@ class Invoice extends Model
         'status', 'payment_method', 'paid_at', 'customer_emailed_at', 'public_view_token', 'due_date', 'work_description',
         'stripe_checkout_session_id', 'stripe_payment_url',
         'time_received', 'time_promised', 'odometer',
-        'next_service_at', 'next_service_reminder_unit', 'next_service_repeat', 'next_service_notes',
+        'next_service_at', 'next_service_reminder_unit', 'next_service_repeat', 'next_service_timezone', 'next_service_notes',
         'next_service_reminder_early_sent_at', 'next_service_reminder_due_sent_at',
         'next_service_popup_dismissed_at',
     ];
@@ -156,6 +157,20 @@ class Invoice extends Model
     public function hasServiceReminder(): bool
     {
         return $this->next_service_at !== null && filled($this->next_service_reminder_unit);
+    }
+
+    public function serviceReminderTimezone(): string
+    {
+        return $this->next_service_timezone ?: InvoiceServiceReminderService::defaultTimezone();
+    }
+
+    public function nextServiceAtLocal(): ?\Illuminate\Support\Carbon
+    {
+        if (! $this->next_service_at) {
+            return null;
+        }
+
+        return $this->next_service_at->copy()->timezone($this->serviceReminderTimezone());
     }
 
     public function isValidPublicViewToken(?string $token): bool

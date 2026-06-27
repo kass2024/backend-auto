@@ -96,10 +96,11 @@ class InvoiceResource extends Resource
                 Tables\Columns\TextColumn::make('due_date')->date()->sortable(),
                 Tables\Columns\TextColumn::make('next_service_at')
                     ->label('Next service')
-                    ->dateTime('M j, Y g:i A')
+                    ->formatStateUsing(fn ($state, Invoice $record): ?string => $record->nextServiceAtLocal()?->format('M j, Y g:i A'))
                     ->placeholder('—')
                     ->description(fn (Invoice $record): ?string => $record->hasServiceReminder()
                         ? collect([
+                            \App\Services\InvoiceServiceReminderService::timezoneLabel($record->serviceReminderTimezone()),
                             match ($record->next_service_reminder_unit) {
                                 'minutes' => '5 min before',
                                 'hours' => '1 hr before',

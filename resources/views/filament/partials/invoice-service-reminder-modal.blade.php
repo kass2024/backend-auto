@@ -84,6 +84,27 @@
                 </div>
             </div>
 
+            <div class="neamee-reminder-modal__section">
+                <label class="neamee-reminder-modal__label">Time zone</label>
+                <div class="neamee-reminder-tz-grid">
+                    <label class="neamee-reminder-tz-chip">
+                        <input type="radio" name="next_service_timezone" value="America/Chicago" checked>
+                        <span>
+                            <strong>Bowling Green, KY</strong>
+                            <small>US Central (CT)</small>
+                        </span>
+                    </label>
+                    <label class="neamee-reminder-tz-chip">
+                        <input type="radio" name="next_service_timezone" value="Africa/Nairobi">
+                        <span>
+                            <strong>Nairobi, Kenya</strong>
+                            <small>East Africa (EAT)</small>
+                        </span>
+                    </label>
+                </div>
+                <p class="neamee-reminder-modal__hint" id="neamee-reminder-tz-hint">Service time is saved in the selected time zone.</p>
+            </div>
+
             <div class="neamee-reminder-modal__tabs">
                 <button type="button" class="neamee-reminder-tab is-active" data-tab="calendar">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -96,7 +117,7 @@
             </div>
 
             <div class="neamee-reminder-tab-panel is-active" data-panel="calendar">
-                <label class="neamee-reminder-modal__label" for="neamee-reminder-datetime">Service date &amp; time</label>
+                <label class="neamee-reminder-modal__label" for="neamee-reminder-datetime">Service date &amp; time <span id="neamee-reminder-tz-badge" class="neamee-reminder-tz-badge">CT</span></label>
                 <div class="neamee-reminder-datetime-wrap">
                     <input type="text" id="neamee-reminder-datetime" name="next_service_at" placeholder="Tap to open calendar…" autocomplete="off" readonly>
                 </div>

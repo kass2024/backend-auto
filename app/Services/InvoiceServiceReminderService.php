@@ -30,6 +30,61 @@ class InvoiceServiceReminderService
 
     public const REPEAT_YEARLY = 'yearly';
 
+    public const TZ_BOWLING_GREEN = 'America/Chicago';
+
+    public const TZ_NAIROBI = 'Africa/Nairobi';
+
+    /**
+     * @return array<string, string>
+     */
+    public static function timezoneOptions(): array
+    {
+        return [
+            self::TZ_BOWLING_GREEN => 'Bowling Green, KY (US Central)',
+            self::TZ_NAIROBI => 'Nairobi, Kenya (EAT)',
+        ];
+    }
+
+    public static function defaultTimezone(): string
+    {
+        return self::TZ_BOWLING_GREEN;
+    }
+
+    public static function timezoneLabel(?string $timezone): string
+    {
+        return self::timezoneOptions()[$timezone ?? self::defaultTimezone()]
+            ?? self::timezoneOptions()[self::defaultTimezone()];
+    }
+
+    public static function isValidTimezone(?string $timezone): bool
+    {
+        return array_key_exists($timezone ?? '', self::timezoneOptions());
+    }
+
+    public static function parseWallClock(string $datetime, string $timezone): Carbon
+    {
+        return Carbon::parse($datetime, $timezone)->utc();
+    }
+
+    public function invoiceTimezone(Invoice $invoice): string
+    {
+        return $invoice->next_service_timezone ?: self::defaultTimezone();
+    }
+
+    public function serviceAtLocal(Invoice $invoice): ?Carbon
+    {
+        if (! $invoice->next_service_at) {
+            return null;
+        }
+
+        return $invoice->next_service_at->copy()->timezone($this->invoiceTimezone($invoice));
+    }
+
+    public function formatServiceAtLocal(Invoice $invoice, string $format = 'M j, Y g:i A'): ?string
+    {
+        return $this->serviceAtLocal($invoice)?->format($format);
+    }
+
     /**
      * @return array<string, string>
      */
@@ -68,6 +123,7 @@ class InvoiceServiceReminderService
         string $unit,
         ?string $notes = null,
         string $repeat = self::REPEAT_NONE,
+        ?string $timezone = null,
     ): void {
         if (! in_array($unit, [self::UNIT_MINUTES, self::UNIT_HOURS, self::UNIT_DAYS], true)) {
             throw new \InvalidArgumentException('Invalid reminder unit.');
@@ -82,8 +138,11 @@ class InvoiceServiceReminderService
             throw new \InvalidArgumentException('Invalid repeat interval.');
         }
 
+        $timezone = self::isValidTimezone($timezone) ? $timezone : self::defaultTimezone();
+
         $invoice->update([
-            'next_service_at' => $serviceAt,
+            'next_service_at' => $serviceAt->utc(),
+            'next_service_timezone' => $timezone,
             'next_service_reminder_unit' => $unit,
             'next_service_repeat' => $repeat,
             'next_service_notes' => $notes,
@@ -97,6 +156,7 @@ class InvoiceServiceReminderService
     {
         $invoice->update([
             'next_service_at' => null,
+            'next_service_timezone' => null,
             'next_service_reminder_unit' => null,
             'next_service_repeat' => self::REPEAT_NONE,
             'next_service_notes' => null,
@@ -276,7 +336,11 @@ class InvoiceServiceReminderService
         }
 
         $invoice->update([
-            'next_service_at' => $this->nextRepeatOccurrence($invoice->next_service_at, $repeat),
+            'next_service_at' => $this->nextRepeatOccurrence(
+                $invoice->next_service_at,
+                $repeat,
+                $this->invoiceTimezone($invoice),
+            ),
             'next_service_reminder_early_sent_at' => null,
             'next_service_reminder_due_sent_at' => null,
             'next_service_popup_dismissed_at' => null,
@@ -291,9 +355,10 @@ class InvoiceServiceReminderService
         return true;
     }
 
-    public function nextRepeatOccurrence(Carbon $from, string $repeat): Carbon
+    public function nextRepeatOccurrence(Carbon $fromUtc, string $repeat, ?string $timezone = null): Carbon
     {
-        $next = $from->copy();
+        $timezone = self::isValidTimezone($timezone) ? $timezone : self::defaultTimezone();
+        $next = $fromUtc->copy()->timezone($timezone);
 
         do {
             $next = match ($repeat) {
@@ -304,9 +369,9 @@ class InvoiceServiceReminderService
                 self::REPEAT_YEARLY => $next->addYear(),
                 default => $next->addMonth(),
             };
-        } while ($next->lte(now()));
+        } while ($next->copy()->utc()->lte(now()));
 
-        return $next;
+        return $next->utc();
     }
 
     public function sendEarlyReminderIfDue(Invoice $invoice): bool
@@ -351,6 +416,7 @@ class InvoiceServiceReminderService
     private function mapInvoiceReminder(Invoice $invoice): array
     {
         $serviceAt = $invoice->next_service_at;
+        $serviceLocal = $this->serviceAtLocal($invoice);
         $minutesUntil = (int) now()->diffInMinutes($serviceAt, false);
         $daysUntil = (int) now()->startOfDay()->diffInDays($serviceAt->copy()->startOfDay(), false);
         $inPopupWindow = $this->isInPopupWindow($invoice);
@@ -367,8 +433,10 @@ class InvoiceServiceReminderService
             },
             'message' => $this->reminderMessage($invoice, $daysUntil, $minutesUntil),
             'service_name' => $invoice->next_service_notes ?: 'Scheduled service',
-            'scheduled_date' => $serviceAt->toDateString(),
-            'scheduled_time' => $serviceAt->format('H:i'),
+            'scheduled_date' => $serviceLocal?->toDateString(),
+            'scheduled_time' => $serviceLocal?->format('H:i'),
+            'timezone' => $this->invoiceTimezone($invoice),
+            'timezone_label' => self::timezoneLabel($this->invoiceTimezone($invoice)),
             'vehicle' => $this->vehicleLabel($invoice),
             'invoice_number' => $invoice->invoice_number,
             'days_until' => max(0, $daysUntil),
@@ -399,7 +467,7 @@ class InvoiceServiceReminderService
 
     private function reminderMessage(Invoice $invoice, int $daysUntil, int $minutesUntil): string
     {
-        $time = $invoice->next_service_at?->format('g:i A') ?? '';
+        $time = $this->serviceAtLocal($invoice)?->format('g:i A') ?? '';
         $label = $invoice->next_service_notes ?: 'service';
 
         return match (true) {
@@ -407,7 +475,7 @@ class InvoiceServiceReminderService
             $daysUntil === 1 => "Reminder: your {$label} is tomorrow at {$time}.",
             $invoice->next_service_reminder_unit === self::UNIT_MINUTES && $minutesUntil <= 5 => "Your {$label} starts in about {$minutesUntil} minute(s) at {$time}.",
             $invoice->next_service_reminder_unit === self::UNIT_HOURS && $minutesUntil <= 60 => "Your {$label} is in about an hour at {$time}.",
-            default => "Your next {$label} is on {$invoice->next_service_at->format('M j')} at {$time}.",
+            default => "Your next {$label} is on ".$this->serviceAtLocal($invoice)?->format('M j')." at {$time}.",
         };
     }
 
@@ -474,8 +542,10 @@ class InvoiceServiceReminderService
             return;
         }
 
-        $serviceAt = $invoice->next_service_at;
-        $timeLabel = $serviceAt?->format('M j, Y g:i A') ?? 'soon';
+        $serviceAt = $this->serviceAtLocal($invoice);
+        $timeLabel = $serviceAt
+            ? $serviceAt->format('M j, Y g:i A').' ('.self::timezoneLabel($this->invoiceTimezone($invoice)).')'
+            : 'soon';
 
         [$title, $message] = match ($kind) {
             'due' => [

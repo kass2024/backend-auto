@@ -30,11 +30,12 @@ class ListInvoiceServiceReminders extends Command
         }
 
         $this->table(
-            ['Invoice', 'Customer', 'Service at', 'Alert', 'Repeat'],
+            ['Invoice', 'Customer', 'Service at (local)', 'Time zone', 'Alert', 'Repeat'],
             $invoices->map(fn (Invoice $invoice) => [
                 $invoice->invoice_number,
                 $invoice->user?->email ?? '—',
-                $invoice->next_service_at?->format('Y-m-d H:i'),
+                $invoice->nextServiceAtLocal()?->format('Y-m-d H:i'),
+                InvoiceServiceReminderService::timezoneLabel($invoice->serviceReminderTimezone()),
                 $invoice->next_service_reminder_unit,
                 InvoiceServiceReminderService::repeatLabel($invoice->next_service_repeat),
             ])

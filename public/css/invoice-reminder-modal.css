@@ -139,8 +139,33 @@ body.neamee-reminder-modal-open { overflow: hidden; }
     transition: all .2s;
 }
 .neamee-reminder-repeat-chip input:checked + span {
-    border-color: #38bdf8; background: rgba(56,189,248,.15); color: #7dd3fc;
-    box-shadow: 0 0 16px rgba(56,189,248,.2);
+    border-color: #38bdf8; background: rgba(56,189,248,.15); color: #e0f2fe;
+}
+
+.neamee-reminder-tz-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+}
+.neamee-reminder-tz-chip { cursor: pointer; }
+.neamee-reminder-tz-chip input { position: absolute; opacity: 0; }
+.neamee-reminder-tz-chip span {
+    display: block; padding: 12px 10px; border-radius: 12px;
+    border: 1px solid #434b58; background: rgba(0,0,0,.2);
+    transition: border-color .2s, background .2s, transform .15s;
+}
+.neamee-reminder-tz-chip span strong { display: block; font-size: .85rem; color: #e5e7eb; }
+.neamee-reminder-tz-chip span small { display: block; margin-top: 4px; font-size: .68rem; color: #6b7280; }
+.neamee-reminder-tz-chip input:checked + span {
+    border-color: #f59e0b; background: rgba(245,158,11,.12);
+    box-shadow: 0 0 18px rgba(245,158,11,.2); transform: translateY(-1px);
+}
+.neamee-reminder-modal__hint {
+    margin: 8px 0 0; font-size: .72rem; color: #6b7280;
+}
+.neamee-reminder-tz-badge {
+    display: inline-block; margin-left: 6px; padding: 2px 8px;
+    border-radius: 999px; font-size: .65rem; font-weight: 700;
+    letter-spacing: .04em; color: #fde68a; background: rgba(245,158,11,.18);
+    vertical-align: middle;
 }
 
 .neamee-reminder-modal__tabs {

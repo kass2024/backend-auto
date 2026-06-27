@@ -14,8 +14,12 @@ This is a friendly reminder about your upcoming service at **{{ config('neamee.c
 @endif
 
 **Invoice:** {{ $invoice->invoice_number }}  
-**Service date:** {{ $invoice->next_service_at->format('l, M j, Y') }}  
-**Service time:** {{ $invoice->next_service_at->format('g:i A') }}  
+@php
+    $serviceLocal = app(\App\Services\InvoiceServiceReminderService::class)->serviceAtLocal($invoice);
+    $tzLabel = \App\Services\InvoiceServiceReminderService::timezoneLabel($invoice->serviceReminderTimezone());
+@endphp
+**Service date:** {{ $serviceLocal?->format('l, M j, Y') }}  
+**Service time:** {{ $serviceLocal?->format('g:i A') }} ({{ $tzLabel }})  
 @if ($invoice->vehicle)
 **Vehicle:** {{ $invoice->vehicle->year }} {{ $invoice->vehicle->make }} {{ $invoice->vehicle->model }}@if($invoice->vehicle->plate_number) ({{ $invoice->vehicle->plate_number }})@endif  
 @endif

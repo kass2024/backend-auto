@@ -111,9 +111,9 @@ class AdminPanelProvider extends PanelProvider
 
                     if (request()->routeIs('filament.admin.resources.invoices.index')) {
                         $assets .= '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">'
-                            .'<link rel="stylesheet" href="'.asset('css/invoice-reminder-modal.css').'?v=2">'
+                            .'<link rel="stylesheet" href="'.asset('css/invoice-reminder-modal.css').'?v=3">'
                             .'<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>'
-                            .'<script src="'.asset('js/invoice-reminder-modal.js').'?v=4" defer></script>';
+                            .'<script src="'.asset('js/invoice-reminder-modal.js').'?v=5" defer></script>';
                     }
 
                     return $assets;
