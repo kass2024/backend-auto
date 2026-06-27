@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('invoices', 'customer_emailed_at')) {
+            return;
+        }
+
         Schema::table('invoices', function (Blueprint $table) {
             $table->timestamp('customer_emailed_at')->nullable()->after('paid_at');
         });

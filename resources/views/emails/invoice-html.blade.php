@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Invoice {{ $invoice->invoice_number }}</title>
-    <style>@include('invoices.partials.styles')</style>
+    <style>{!! $inlineStyles !!}</style>
 </head>
 <body class="invoice-document-body" style="padding: 20px 12px 32px; background: {{ config('neamee.brand.page_bg') }};">
     <div class="invoice-email-intro">

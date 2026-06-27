@@ -198,7 +198,7 @@ class InvoiceService
             'recipient' => $recipient,
         ]);
 
-        $invoice->update(['customer_emailed_at' => now()]);
+        $invoice->markEmailedToCustomer();
     }
 
     public function queueInvoiceEmail(Invoice $invoice): void

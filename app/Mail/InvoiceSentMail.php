@@ -40,7 +40,7 @@ class InvoiceSentMail extends Mailable
             $this->invoice,
             $this->includeStripeLink,
             showLogo: false,
-            includePdfUrl: true,
+            forEmail: true,
         );
 
         return new Content(

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Schema;
 
 class Invoice extends Model
 {
@@ -99,6 +100,30 @@ class Invoice extends Model
 
     public function wasEmailedToCustomer(): bool
     {
+        if (! Schema::hasColumn($this->getTable(), 'customer_emailed_at')) {
+            return false;
+        }
+
         return $this->customer_emailed_at !== null;
+    }
+
+    public function markEmailedToCustomer(): void
+    {
+        if (! Schema::hasColumn($this->getTable(), 'customer_emailed_at')) {
+            return;
+        }
+
+        try {
+            $timestamp = now();
+
+            $this->newQuery()
+                ->whereKey($this->getKey())
+                ->update(['customer_emailed_at' => $timestamp]);
+
+            $this->setAttribute('customer_emailed_at', $timestamp);
+            $this->syncOriginalAttribute('customer_emailed_at');
+        } catch (\Throwable) {
+            // Column may be missing if migrations have not run yet — email still sent.
+        }
     }
 }

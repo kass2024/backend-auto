@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\InvoiceResource\Pages;
 
 use App\Filament\Resources\InvoiceResource;
+use App\Filament\Support\InvoiceFlashNotifications;
 use App\Filament\Support\Money;
 use App\Models\Invoice;
 use App\Services\InvoiceService;
@@ -39,6 +40,11 @@ class ViewInvoice extends ViewRecord
                 Infolists\Components\TextEntry::make('vehicle.plate_number')->label('Vehicle')->placeholder('—'),
                 Infolists\Components\TextEntry::make('due_date')->date(),
                 Infolists\Components\TextEntry::make('paid_at')->dateTime()->placeholder('—'),
+                Infolists\Components\TextEntry::make('customer_emailed_at')
+                    ->label('Emailed to customer')
+                    ->dateTime()
+                    ->placeholder('Not yet sent')
+                    ->visible(fn (): bool => \Illuminate\Support\Facades\Schema::hasColumn('invoices', 'customer_emailed_at')),
                 Infolists\Components\TextEntry::make('total')->formatStateUsing(fn ($state) => Money::format($state)),
             ])->columns(3),
             Infolists\Components\Section::make('Parts used')->schema([
@@ -87,29 +93,38 @@ class ViewInvoice extends ViewRecord
                 ->url(fn (Invoice $record) => route('filament.admin.invoices.print', $record))
                 ->openUrlInNewTab(),
             Actions\Action::make('emailCustomer')
-                ->label('Email Customer')
+                ->label(fn (Invoice $record): string => $record->wasEmailedToCustomer() ? 'Resend email' : 'Email customer')
                 ->icon('heroicon-o-paper-airplane')
                 ->color('success')
                 ->visible(fn (Invoice $record) => in_array($record->status, ['draft', 'sent', 'overdue'], true))
                 ->requiresConfirmation()
-                ->modalHeading('Email invoice to customer')
-                ->modalDescription('Email this invoice with payment link to the customer?')
-                ->modalSubmitActionLabel('Send email')
-                ->action(function (Actions\Action $action): void {
-                    app(InvoiceService::class)->sendToCustomer($this->record);
-                    $action->success();
-                })
-                ->failureNotification(
-                    Notification::make()
-                        ->danger()
-                        ->title('Email failed')
-                )
-                ->successNotification(
+                ->modalHeading(fn (Invoice $record): string => $record->wasEmailedToCustomer() ? 'Resend invoice email' : 'Email invoice to customer')
+                ->modalDescription(fn (Invoice $record): string => 'Send invoice '.$record->invoice_number.' to '.$record->user?->email.'?')
+                ->modalSubmitActionLabel(fn (Invoice $record): string => $record->wasEmailedToCustomer() ? 'Resend' : 'Send email')
+                ->action(function (): void {
+                    $wasResend = $this->record->wasEmailedToCustomer();
+
+                    try {
+                        app(InvoiceService::class)->sendToCustomer($this->record);
+                    } catch (\Throwable $e) {
+                        Notification::make()
+                            ->danger()
+                            ->title('Email failed')
+                            ->body($e->getMessage())
+                            ->send();
+
+                        return;
+                    }
+
+                    $sent = $this->record->fresh();
+
                     Notification::make()
                         ->success()
-                        ->title('Invoice email sent')
-                        ->body('The customer will receive the invoice and payment link shortly.')
-                ),
+                        ->title($wasResend ? 'Invoice resent successfully' : 'Invoice email sent successfully')
+                        ->body('Sent to '.$sent->user?->email.'. Check inbox and spam folder.')
+                        ->duration(12000)
+                        ->send();
+                }),
             Actions\EditAction::make(),
         ];
     }

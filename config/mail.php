@@ -42,11 +42,12 @@ return [
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
             'timeout' => (int) env('MAIL_TIMEOUT', 30),
-            'local_domain' => env('MAIL_EHLO_DOMAIN'),
+            'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', ''), PHP_URL_HOST)),
             'stream' => [
                 'ssl' => [
-                    'verify_peer' => filter_var(env('MAIL_VERIFY_PEER', true), FILTER_VALIDATE_BOOLEAN),
-                    'verify_peer_name' => filter_var(env('MAIL_VERIFY_PEER', true), FILTER_VALIDATE_BOOLEAN),
+                    'allow_self_signed' => true,
+                    'verify_peer' => filter_var(env('MAIL_VERIFY_PEER', false), FILTER_VALIDATE_BOOLEAN),
+                    'verify_peer_name' => filter_var(env('MAIL_VERIFY_PEER', false), FILTER_VALIDATE_BOOLEAN),
                 ],
             ],
         ],
