@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\InvoiceResource\Pages;
 
 use App\Filament\Resources\InvoiceResource;
-use App\Filament\Support\InvoiceEmailUi;
 use App\Filament\Support\InvoiceFlashNotifications;
 use App\Filament\Support\InvoiceFormSchema;
 use App\Services\InvoiceService;
@@ -29,14 +28,16 @@ class CreateInvoice extends CreateRecord
         }
 
         $this->shouldEmailCustomer = (bool) ($data['send_to_customer'] ?? true);
+        $data = InvoiceFormSchema::mergeLaborFeeIntoServiceLines($data);
         $this->lineData = [
             'part_lines' => $data['part_lines'] ?? [],
             'service_lines' => $data['service_lines'] ?? [],
         ];
 
-        unset($data['send_to_customer'], $data['part_lines'], $data['service_lines']);
+        $data = InvoiceFormSchema::applyComputedTotalsForCreate($data);
+        unset($data['send_to_customer'], $data['part_lines'], $data['service_lines'], $data['labor_fee']);
 
-        return InvoiceFormSchema::applyComputedTotalsForCreate($data);
+        return $data;
     }
 
     protected function afterCreate(): void
@@ -64,30 +65,20 @@ class CreateInvoice extends CreateRecord
 
             $sent = $this->record->fresh();
 
-            if ($sent->isPaid()) {
-                $this->createdNotificationTitle = 'Invoice created and marked paid';
-                $this->createdNotificationBody = 'Invoice '.$sent->invoice_number.' is paid'
-                    .($sent->user?->email ? ' and was emailed to '.$sent->user->email.'.' : '.');
-            } else {
-                $this->createdNotificationTitle = InvoiceEmailUi::successTitle(false);
-                $this->createdNotificationBody = InvoiceEmailUi::successBody(
-                    $sent->invoice_number,
-                    $sent->user?->email ?? '',
-                    $sent->wantsStripePayment(),
-                );
-            }
+            $this->createdNotificationTitle = 'Invoice created';
+            $this->createdNotificationBody = 'Invoice '.$sent->invoice_number.' saved as unpaid'
+                .($sent->user?->email
+                    ? '. Email is being sent to '.$sent->user->email.'.'
+                    : '.');
 
             InvoiceFlashNotifications::flash('success', $this->createdNotificationTitle, $this->createdNotificationBody);
 
             return;
         }
 
-        $this->createdNotificationTitle = $this->record->isPaid()
-            ? 'Invoice created and marked paid'
-            : 'Invoice created';
-        $this->createdNotificationBody = $this->record->isPaid()
-            ? 'Invoice '.$this->record->invoice_number.' saved as paid.'
-            : 'Invoice '.$this->record->invoice_number.' saved — awaiting Stripe payment.';
+        $this->createdNotificationTitle = 'Invoice created (unpaid)';
+        $this->createdNotificationBody = 'Invoice '.$this->record->invoice_number.' saved as unpaid'
+            .($this->record->wantsStripePayment() ? ' — awaiting Stripe payment.' : '.');
 
         InvoiceFlashNotifications::flash('success', $this->createdNotificationTitle, $this->createdNotificationBody);
     }

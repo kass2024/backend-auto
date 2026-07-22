@@ -19,22 +19,24 @@ class EditInvoice extends EditRecord
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
-        return InvoiceFormSchema::applyComputedTotals(array_merge(
+        return InvoiceFormSchema::applyComputedTotals(InvoiceFormSchema::extractLaborFee(array_merge(
             $data,
             app(InvoiceService::class)->formLineData($this->record),
-        ));
+        )));
     }
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
+        $data = InvoiceFormSchema::mergeLaborFeeIntoServiceLines($data);
         $this->lineData = [
             'part_lines' => $data['part_lines'] ?? [],
             'service_lines' => $data['service_lines'] ?? [],
         ];
 
-        unset($data['part_lines'], $data['service_lines']);
+        $data = InvoiceFormSchema::applyComputedTotals($data);
+        unset($data['part_lines'], $data['service_lines'], $data['labor_fee']);
 
-        return InvoiceFormSchema::applyComputedTotals($data);
+        return $data;
     }
 
     protected function afterSave(): void

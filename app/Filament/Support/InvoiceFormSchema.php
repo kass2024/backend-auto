@@ -31,15 +31,15 @@ class InvoiceFormSchema
                             'cancelled' => 'Cancelled',
                         ])
                         ->required()
-                        ->default('paid')
+                        ->default('sent')
                         ->live()
                         ->visible(fn (string $operation): bool => $operation !== 'create')
-                        ->helperText('On create, invoices are marked paid automatically unless Credit Card (Stripe) is chosen.'),
+                        ->helperText('New invoices are created unpaid and emailed as unpaid. Mark paid after the customer pays.'),
                     Forms\Components\DatePicker::make('due_date')->default(now()->addDays(14))->required(),
                     Forms\Components\Toggle::make('send_to_customer')
                         ->label('Email invoice to customer on save')
                         ->default(true)
-                        ->helperText('Sends the branded invoice email automatically. Stripe link is only included when Credit Card (Stripe) is selected.')
+                        ->helperText('Sends the branded unpaid invoice email automatically. Stripe link is included when Credit Card (Stripe) is selected.')
                         ->visible(fn (string $operation): bool => $operation === 'create'),
                 ])
                 ->columns(2),
@@ -97,7 +97,7 @@ class InvoiceFormSchema
                 ->columns(2),
 
             Forms\Components\Section::make('Parts used')
-                ->description('Qty, part number and description — matches the parts section on your invoice template.')
+                ->description('Qty, part no. and part name — matches the parts section on your invoice template.')
                 ->schema([
                     Forms\Components\Repeater::make('part_lines')
                         ->label('')
@@ -106,7 +106,7 @@ class InvoiceFormSchema
                         ->defaultItems(0)
                         ->addActionLabel('Add part')
                         ->collapsible()
-                        ->itemLabel(fn (?array $state): ?string => $state['part_number'] ?? $state['description'] ?? 'Part line')
+                        ->itemLabel(fn (?array $state): ?string => $state['description'] ?? $state['part_number'] ?? 'Part line')
                         ->live()
                         ->columnSpanFull(),
                     Forms\Components\Placeholder::make('parts_subtotal_preview')
@@ -114,15 +114,24 @@ class InvoiceFormSchema
                         ->content(fn (Get $get) => Money::format(self::sumLines($get('part_lines') ?? []))),
                 ]),
 
-            Forms\Components\Section::make('Services & labor')
-                ->description('Description of work performed and labor charges.')
+            Forms\Components\Section::make('Labor & services')
+                ->description('Enter the labor fee and any catalog services. Labor appears on the printed invoice.')
                 ->schema([
+                    Forms\Components\TextInput::make('labor_fee')
+                        ->label('Labor fee')
+                        ->numeric()
+                        ->prefix('$')
+                        ->default(0)
+                        ->minValue(0)
+                        ->live()
+                        ->helperText('This amount is shown as Labor on the final printed invoice.')
+                        ->columnSpanFull(),
                     Forms\Components\Repeater::make('service_lines')
-                        ->label('')
+                        ->label('Additional services')
                         ->schema(self::serviceLineSchema())
                         ->columns(6)
-                        ->defaultItems(1)
-                        ->addActionLabel('Add service / labor line')
+                        ->defaultItems(0)
+                        ->addActionLabel('Add service line')
                         ->collapsible()
                         ->itemLabel(fn (?array $state): ?string => $state['description'] ?? 'Service line')
                         ->live()
@@ -132,8 +141,10 @@ class InvoiceFormSchema
                         ->rows(4)
                         ->columnSpanFull(),
                     Forms\Components\Placeholder::make('labor_subtotal_preview')
-                        ->label('Total labor / services')
-                        ->content(fn (Get $get) => Money::format(self::sumLines($get('service_lines') ?? []))),
+                        ->label('Labor total')
+                        ->content(fn (Get $get) => Money::format(
+                            self::sumLines($get('service_lines') ?? []) + (float) ($get('labor_fee') ?? 0)
+                        )),
                 ]),
 
             Forms\Components\Section::make('Totals & payment')
@@ -152,8 +163,10 @@ class InvoiceFormSchema
                         ->label('Parts total')
                         ->content(fn (Get $get): string => Money::format(self::sumLines($get('part_lines') ?? []))),
                     Forms\Components\Placeholder::make('labor_total_display')
-                        ->label('Labor total')
-                        ->content(fn (Get $get): string => Money::format(self::sumLines($get('service_lines') ?? []))),
+                        ->label('Labor')
+                        ->content(fn (Get $get): string => Money::format(
+                            self::sumLines($get('service_lines') ?? []) + (float) ($get('labor_fee') ?? 0)
+                        )),
                     Forms\Components\Placeholder::make('subtotal_display')
                         ->label('Subtotal')
                         ->content(fn (Get $get): string => Money::format(self::computeTotalsFromState($get)['subtotal'])),
@@ -181,8 +194,8 @@ class InvoiceFormSchema
                         ->default('cash')
                         ->live()
                         ->helperText(fn (Get $get, string $operation): string => match (true) {
-                            $operation === 'create' && $get('payment_method') === 'credit_card' => 'Invoice stays unpaid until the customer pays via Stripe. A payment link is included in the email.',
-                            $operation === 'create' => 'Invoice is marked paid on save. No Stripe link in the customer email.',
+                            $operation === 'create' && $get('payment_method') === 'credit_card' => 'Invoice stays unpaid. A Stripe payment link is included in the customer email.',
+                            $operation === 'create' => 'Invoice is created unpaid and emailed as unpaid. Preferred payment method is shown for remittance.',
                             $get('status') === 'paid' => 'How the customer paid — shown on the invoice.',
                             $get('payment_method') === 'credit_card' => 'Customer email will include a Stripe payment link while the invoice is unpaid.',
                             default => 'Choose Credit Card (Stripe) to collect payment online before marking paid.',
@@ -225,7 +238,7 @@ class InvoiceFormSchema
                     }
 
                     $set('part_number', $part->part_no ?? $part->sku);
-                    $set('description', $part->name);
+                    $set('description', $part->name ?: ($part->manufacturer_part_number ?: 'Part'));
                     $set('unit_price', $part->unit_price);
                     $set('quantity', 1);
                     self::updateLineTotal($set, $get);
@@ -236,6 +249,7 @@ class InvoiceFormSchema
                 ->maxLength(50)
                 ->columnSpan(1),
             Forms\Components\TextInput::make('description')
+                ->label('Part name')
                 ->required()
                 ->columnSpan(2),
             Forms\Components\TextInput::make('quantity')
@@ -334,7 +348,7 @@ class InvoiceFormSchema
     public static function computeTotalsFromState(Get $get): array
     {
         $partsTotal = self::sumLines($get('part_lines') ?? []);
-        $laborTotal = self::sumLines($get('service_lines') ?? []);
+        $laborTotal = round(self::sumLines($get('service_lines') ?? []) + (float) ($get('labor_fee') ?? 0), 2);
         $subtotal = round($partsTotal + $laborTotal, 2);
         $taxRate = (float) ($get('tax_rate') ?? 0);
         $discount = (float) ($get('discount') ?? 0);
@@ -359,13 +373,82 @@ class InvoiceFormSchema
     }
 
     /**
+     * @param  array<string, mixed>|null  $line
+     */
+    public static function isLaborLine(?array $line): bool
+    {
+        if (! $line) {
+            return false;
+        }
+
+        return strcasecmp(trim((string) ($line['description'] ?? '')), 'Labor') === 0
+            && blank($line['service_id'] ?? null);
+    }
+
+    /**
+     * Pull a dedicated Labor fee out of service lines for the form field.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    public static function extractLaborFee(array $data): array
+    {
+        $laborFee = 0.0;
+        $rest = [];
+
+        foreach ($data['service_lines'] ?? [] as $line) {
+            if (self::isLaborLine($line)) {
+                $laborFee += (float) ($line['total'] ?? $line['unit_price'] ?? 0);
+            } else {
+                $rest[] = $line;
+            }
+        }
+
+        $data['service_lines'] = $rest;
+        $data['labor_fee'] = round($laborFee, 2);
+
+        return $data;
+    }
+
+    /**
+     * Persist Labor fee as a service line so it prints on the invoice.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    public static function mergeLaborFeeIntoServiceLines(array $data): array
+    {
+        $lines = array_values(array_filter(
+            $data['service_lines'] ?? [],
+            fn ($line) => ! self::isLaborLine(is_array($line) ? $line : null)
+        ));
+
+        $fee = round((float) ($data['labor_fee'] ?? 0), 2);
+
+        if ($fee > 0) {
+            array_unshift($lines, [
+                'service_id' => null,
+                'description' => 'Labor',
+                'quantity' => 1,
+                'unit_price' => $fee,
+                'total' => $fee,
+            ]);
+        }
+
+        $data['service_lines'] = $lines;
+        unset($data['labor_fee']);
+
+        return $data;
+    }
+
+    /**
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
     public static function applyComputedTotals(array $data, bool $skipPaymentDefaults = false): array
     {
         $partsTotal = self::sumLines($data['part_lines'] ?? []);
-        $laborTotal = self::sumLines($data['service_lines'] ?? []);
+        $laborTotal = round(self::sumLines($data['service_lines'] ?? []) + (float) ($data['labor_fee'] ?? 0), 2);
         $subtotal = round($partsTotal + $laborTotal, 2);
         $taxRate = (float) ($data['tax_rate'] ?? 0);
         $discount = (float) ($data['discount'] ?? 0);
@@ -392,14 +475,10 @@ class InvoiceFormSchema
     public static function applyPaymentDefaults(array $data, string $operation = 'edit'): array
     {
         if ($operation === 'create') {
-            if (($data['payment_method'] ?? '') === 'credit_card') {
-                $data['status'] = 'sent';
-                $data['paid_at'] = null;
-            } else {
-                $data['status'] = 'paid';
-                $data['paid_at'] = $data['paid_at'] ?? now();
-                $data['payment_method'] = $data['payment_method'] ?? 'cash';
-            }
+            // Always create unpaid so customer emails show amount due + QR pay instructions.
+            $data['status'] = 'sent';
+            $data['paid_at'] = null;
+            $data['payment_method'] = $data['payment_method'] ?? 'cash';
 
             return $data;
         }

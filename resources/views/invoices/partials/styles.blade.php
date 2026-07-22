@@ -262,6 +262,41 @@ table.totals tr.grand .label { background: transparent; color: #fff; }
     letter-spacing: 0.02em;
 }
 
+.footer .pay-qr {
+    margin-top: 22px;
+    text-align: center;
+}
+
+.footer .pay-qr .scan-and-pay {
+    margin: 0 0 6px;
+    font-family: 'Rajdhani', 'Inter', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: {{ $b['primary_dark'] }};
+}
+
+.footer .pay-qr .pay-qr-help {
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: {{ $b['text'] }};
+    line-height: 1.45;
+}
+
+.footer .pay-qr img {
+    display: block;
+    margin: 0 auto;
+    width: 280px;
+    max-width: 100%;
+    height: auto;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    border: 1px solid {{ $b['border'] }};
+    padding: 10px;
+    background: #fff;
+}
+
 @media print {
     body.invoice-document-body { background: #fff; padding: 0; }
     .no-print { display: none !important; }

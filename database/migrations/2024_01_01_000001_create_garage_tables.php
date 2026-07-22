@@ -192,7 +192,7 @@ return new class extends Migration
             $table->decimal('total', 10, 2)->default(0);
             $table->enum('status', ['draft', 'sent', 'paid', 'overdue', 'cancelled'])->default('draft');
             $table->enum('payment_method', [
-                'cash', 'bank_transfer', 'credit_card', 'mobile_money', 'mpesa', 'airtel_money',
+                'cash', 'check', 'bank_transfer', 'credit_card', 'mobile_money', 'mpesa', 'airtel_money',
             ])->nullable();
             $table->timestamp('paid_at')->nullable();
             $table->date('due_date')->nullable();

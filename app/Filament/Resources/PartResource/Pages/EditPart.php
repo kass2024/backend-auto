@@ -15,7 +15,9 @@ class EditPart extends EditRecord
         $data['supplier_id'] = null;
         $data['unit_price'] = $data['unit_price'] ?? 0;
         $data['quantity'] = $data['quantity'] ?? 0;
-        $data['name'] = trim(($data['brand'] ?? '').' '.($data['vehicle_model'] ?? '')) ?: ($data['brand'] ?? $this->record->name);
+        $data['name'] = filled($data['name'] ?? null)
+            ? trim((string) $data['name'])
+            : (trim(($data['brand'] ?? '').' '.($data['vehicle_model'] ?? '')) ?: ($data['brand'] ?? $this->record->name));
 
         if (filled($data['part_no'] ?? null)) {
             $data['sku'] = $data['part_no'];

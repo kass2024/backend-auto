@@ -35,6 +35,9 @@ class InvoiceDocument
             'services' => $invoice->items->where('type', 'service'),
             'logoUrl' => $showLogo ? self::logoUrl($forEmail) : '',
             'showLogo' => $showLogo,
+            'qrUrl' => self::qrUrl($forEmail),
+            'qrPath' => self::qrAbsolutePath(),
+            'embedQr' => false,
             'includeStripeLink' => $includeStripeLink,
             'paymentUrl' => $includeStripeLink ? $invoice->stripe_payment_url : null,
             'pdfUrl' => $forEmail ? self::publicViewUrl($invoice) : null,
@@ -47,6 +50,37 @@ class InvoiceDocument
         $path = config('neamee.logo', 'images/logo/logo.png');
 
         return $forEmail ? self::emailUrl($path, asset: true) : asset($path);
+    }
+
+    public static function qrUrl(bool $forEmail = false): string
+    {
+        $path = self::qrPublicPath();
+
+        if ($path === null) {
+            return '';
+        }
+
+        // Emails must not rely on localhost asset URLs — callers should CID-embed when forEmail.
+        // Keep a public URL as a last-resort fallback for web/print.
+        return $forEmail ? self::emailUrl($path, asset: true) : asset($path);
+    }
+
+    public static function qrPublicPath(): ?string
+    {
+        foreach (['images/qr-egide.png', 'images/qr-egide.jpeg'] as $relative) {
+            if (is_file(public_path($relative))) {
+                return $relative;
+            }
+        }
+
+        return null;
+    }
+
+    public static function qrAbsolutePath(): ?string
+    {
+        $relative = self::qrPublicPath();
+
+        return $relative ? public_path($relative) : null;
     }
 
     public static function publicViewUrl(Invoice $invoice): ?string

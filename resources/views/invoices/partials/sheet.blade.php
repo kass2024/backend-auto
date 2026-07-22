@@ -91,7 +91,7 @@
                     <tr>
                         <th style="width:10%">Qty</th>
                         <th style="width:22%">Part no.</th>
-                        <th>Description</th>
+                        <th>Part name</th>
                         <th class="amount" style="width:18%">Amount</th>
                     </tr>
                 </thead>
@@ -111,11 +111,11 @@
         </div>
 
         <div class="panel">
-            <div class="panel-title">Services &amp; labor</div>
+            <div class="panel-title">Labor</div>
             <table class="items">
                 <thead>
                     <tr>
-                        <th>Description of work</th>
+                        <th>Description</th>
                         <th style="width:10%">Qty</th>
                         <th class="amount" style="width:18%">Amount</th>
                     </tr>
@@ -128,7 +128,7 @@
                             <td class="amount">${{ number_format($item->total, 2) }}</td>
                         </tr>
                     @empty
-                        <tr class="empty-row"><td colspan="3">No services listed</td></tr>
+                        <tr class="empty-row"><td colspan="3">No labor listed</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -151,7 +151,7 @@
                 <td class="value">${{ number_format($invoice->parts_total, 2) }}</td>
             </tr>
             <tr>
-                <td class="label">Total labor / services</td>
+                <td class="label">Labor</td>
                 <td class="value">${{ number_format($invoice->labor_total, 2) }}</td>
             </tr>
             @if($invoice->discount > 0)
@@ -193,5 +193,21 @@
             <p>Please remit payment by the due date. Contact us for payment options.</p>
         @endif
         <p class="thank-you">Thank you for choosing {{ config('neamee.company_name') }}!</p>
+
+        @php
+            $qrSrc = '';
+            if (! empty($embedQr) && ! empty($qrPath) && isset($message) && is_file($qrPath)) {
+                $qrSrc = $message->embed($qrPath);
+            } elseif (! empty($qrUrl)) {
+                $qrSrc = $qrUrl;
+            }
+        @endphp
+        @if(! $invoice->isPaid() && $qrSrc !== '')
+            <div class="pay-qr">
+                <p class="scan-and-pay">Scan and pay</p>
+                <p class="pay-qr-help">Scan this code in your bank&apos;s app to pay <strong>EGIDE</strong></p>
+                <img src="{{ $qrSrc }}" alt="Scan and pay QR code" width="280" style="width:280px;max-width:100%;height:auto;border:1px solid #d8dcc8;padding:10px;background:#fff;display:block;margin:12px auto 0;">
+            </div>
+        @endif
     </div>
 </div>

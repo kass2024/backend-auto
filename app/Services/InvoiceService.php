@@ -2,12 +2,10 @@
 
 namespace App\Services;
 
-use App\Jobs\SendInvoiceEmailJob;
 use App\Mail\InvoiceSentMail;
 use App\Models\Invoice;
 use App\Models\JobCard;
 use App\Models\Part;
-use App\Services\StripePaymentService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
@@ -69,10 +67,12 @@ class InvoiceService
             $partNumber = $line['part_number'] ?? null;
             $description = $line['description'] ?? 'Part';
 
-            if ($partId && ! $partNumber) {
+            if ($partId && (! $partNumber || $description === 'Part')) {
                 $part = Part::find($partId);
-                $partNumber = $part?->part_no ?? $part?->sku;
-                $description = $description === 'Part' ? ($part?->name ?? 'Part') : $description;
+                $partNumber = $partNumber ?: ($part?->part_no ?? $part?->sku);
+                if ($description === 'Part') {
+                    $description = $part?->name ?: ($part?->manufacturer_part_number ?: 'Part');
+                }
             }
 
             $invoice->items()->create([
@@ -150,11 +150,14 @@ class InvoiceService
             throw new \RuntimeException('Customer has no email address.');
         }
 
-        if ($invoice->status !== 'paid') {
-            $invoice->update(['status' => 'sent']);
-        }
+        // Always email as unpaid so the customer sees amount due and QR pay instructions.
+        $invoice->update([
+            'status' => 'sent',
+            'paid_at' => null,
+        ]);
 
-        $this->deliverInvoiceEmail($invoice->fresh());
+        // Send after the HTTP response so Create/Save does not wait on SMTP.
+        $this->queueInvoiceEmail($invoice->fresh());
     }
 
     public function deliverInvoiceEmail(Invoice $invoice): void
@@ -206,13 +209,26 @@ class InvoiceService
 
     public function queueInvoiceEmail(Invoice $invoice): void
     {
-        if (config('queue.default') === 'sync') {
-            $this->deliverInvoiceEmail($invoice);
+        $invoiceId = $invoice->id;
 
-            return;
-        }
+        // Always run after the browser response so Filament create/save is instant.
+        // With the sync queue driver this still executes in the same PHP process after flush.
+        dispatch(function () use ($invoiceId): void {
+            $invoice = Invoice::query()->find($invoiceId);
 
-        SendInvoiceEmailJob::dispatch($invoice->id)->afterResponse();
+            if (! $invoice) {
+                return;
+            }
+
+            try {
+                app(InvoiceService::class)->deliverInvoiceEmail($invoice);
+            } catch (Throwable $e) {
+                Log::error('Background invoice email failed', [
+                    'invoice_id' => $invoiceId,
+                    'message' => $e->getMessage(),
+                ]);
+            }
+        })->afterResponse();
     }
 
     public function markPaid(Invoice $invoice, ?string $paymentMethod = null): void

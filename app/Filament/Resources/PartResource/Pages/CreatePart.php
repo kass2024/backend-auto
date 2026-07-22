@@ -18,7 +18,9 @@ class CreatePart extends CreateRecord
             : $this->generatePartNo();
 
         $data['sku'] = $data['part_no'];
-        $data['name'] = trim(($data['brand'] ?? '').' '.($data['vehicle_model'] ?? '')) ?: ($data['brand'] ?? 'Part');
+        $data['name'] = filled($data['name'] ?? null)
+            ? trim((string) $data['name'])
+            : (trim(($data['brand'] ?? '').' '.($data['vehicle_model'] ?? '')) ?: ($data['brand'] ?? 'Part'));
         $data['min_stock'] = 0;
         $data['unit_cost'] = 0;
         $data['unit_price'] = $data['unit_price'] ?? 0;

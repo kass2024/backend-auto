@@ -53,14 +53,14 @@ class ViewInvoice extends ViewRecord
                     ->label('')
                     ->schema([
                         Infolists\Components\TextEntry::make('part_number')->label('Part no.'),
-                        Infolists\Components\TextEntry::make('description'),
+                        Infolists\Components\TextEntry::make('description')->label('Part name'),
                         Infolists\Components\TextEntry::make('quantity'),
                         Infolists\Components\TextEntry::make('total')->formatStateUsing(fn ($state) => Money::format($state)),
                     ])
                     ->columns(4)
                     ->placeholder('No parts listed'),
             ]),
-            Infolists\Components\Section::make('Services & labor')->schema([
+            Infolists\Components\Section::make('Labor')->schema([
                 Infolists\Components\RepeatableEntry::make('serviceItems')
                     ->label('')
                     ->schema([
@@ -69,15 +69,15 @@ class ViewInvoice extends ViewRecord
                         Infolists\Components\TextEntry::make('total')->formatStateUsing(fn ($state) => Money::format($state)),
                     ])
                     ->columns(4)
-                    ->placeholder('No services listed'),
+                    ->placeholder('No labor listed'),
                 Infolists\Components\TextEntry::make('work_description')
                     ->label('Description of work')
                     ->placeholder('—')
                     ->columnSpanFull(),
             ]),
             Infolists\Components\Section::make('Totals')->schema([
-                Infolists\Components\TextEntry::make('parts_total')->formatStateUsing(fn ($state) => Money::format($state)),
-                Infolists\Components\TextEntry::make('labor_total')->formatStateUsing(fn ($state) => Money::format($state)),
+                Infolists\Components\TextEntry::make('parts_total')->label('Parts')->formatStateUsing(fn ($state) => Money::format($state)),
+                Infolists\Components\TextEntry::make('labor_total')->label('Labor')->formatStateUsing(fn ($state) => Money::format($state)),
                 Infolists\Components\TextEntry::make('tax_amount')->formatStateUsing(fn ($state) => Money::format($state)),
                 Infolists\Components\TextEntry::make('discount')->formatStateUsing(fn ($state) => Money::format($state)),
                 Infolists\Components\TextEntry::make('total')->formatStateUsing(fn ($state) => Money::format($state))->weight('bold'),

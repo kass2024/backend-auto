@@ -43,6 +43,10 @@ class InvoiceSentMail extends Mailable
             forEmail: true,
         );
 
+        // Absolute path for $message->embed() in the Blade template (CID inline image).
+        $viewData['qrPath'] = InvoiceDocument::qrAbsolutePath();
+        $viewData['embedQr'] = true;
+
         return new Content(
             view: 'emails.invoice-html',
             text: 'emails.invoice-text',

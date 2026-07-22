@@ -20,7 +20,7 @@ Thank you for choosing **NEAMEE Auto-Tech Solutions**. Your repair invoice is re
 
 @if($invoice->partItems->isNotEmpty())
 <x-mail::table>
-| Qty | Part no. | Description | Amount |
+| Qty | Part no. | Part name | Amount |
 |:--:|:--|:--|--:|
 @foreach($invoice->partItems as $item)
 | {{ $item->quantity }} | {{ $item->part_number ?? '—' }} | {{ $item->description }} | ${{ number_format($item->total, 2) }} |
@@ -31,7 +31,7 @@ Thank you for choosing **NEAMEE Auto-Tech Solutions**. Your repair invoice is re
 No parts listed on this invoice.
 @endif
 
-## Services & labor
+## Labor
 
 @if($invoice->serviceItems->isNotEmpty())
 <x-mail::table>
@@ -41,9 +41,9 @@ No parts listed on this invoice.
 | {{ $item->description }} | {{ $item->quantity }} | ${{ number_format($item->total, 2) }} |
 @endforeach
 </x-mail::table>
-**Labor / services total:** ${{ number_format($invoice->labor_total, 2) }}
+**Labor:** ${{ number_format($invoice->labor_total, 2) }}
 @else
-No service lines listed on this invoice.
+No labor listed on this invoice.
 @endif
 
 @if($invoice->work_description)

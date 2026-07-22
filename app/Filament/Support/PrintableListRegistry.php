@@ -24,14 +24,14 @@ class PrintableListRegistry
         return [
             'parts' => [
                 'title' => 'AUTOMOTIVE PARTS INVENTORY',
-                'columns' => ['PART NO', 'CATEGORY', 'BRAND', 'MODEL', 'YEAR', 'PART NUMBER', 'QUANTITY', 'UNIT PRICE'],
+                'columns' => ['PART NO', 'CATEGORY', 'BRAND', 'MODEL', 'YEAR', 'PART NAME', 'QUANTITY', 'UNIT PRICE'],
                 'rows' => fn () => Part::query()->orderBy('part_no')->get()->map(fn (Part $p) => [
                     $p->part_no ?? $p->sku ?? '—',
                     $p->category ?? '—',
                     $p->brand ?? '—',
                     $p->vehicle_model ?? '—',
                     $p->vehicle_year ?? '—',
-                    $p->manufacturer_part_number ?? '—',
+                    $p->name ?? '—',
                     (string) ($p->quantity ?? 0),
                     Money::format($p->unit_price),
                 ])->all(),
