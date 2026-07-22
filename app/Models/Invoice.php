@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 class Invoice extends Model
 {
     protected $fillable = [
-        'invoice_number', 'user_id', 'job_card_id', 'vehicle_id',
+        'invoice_number', 'user_id', 'job_card_id', 'quotation_id', 'vehicle_id',
         'subtotal', 'labor_total', 'parts_total', 'tax_rate', 'tax_amount', 'discount', 'total',
         'status', 'payment_method', 'paid_at', 'customer_emailed_at', 'public_view_token', 'due_date', 'work_description',
         'stripe_checkout_session_id', 'stripe_payment_url',
@@ -56,6 +56,11 @@ class Invoice extends Model
         return $this->belongsTo(Vehicle::class);
     }
 
+    public function quotation(): BelongsTo
+    {
+        return $this->belongsTo(Quotation::class);
+    }
+
     public function items(): HasMany
     {
         return $this->hasMany(InvoiceItem::class)->orderBy('sort_order');
@@ -83,14 +88,20 @@ class Invoice extends Model
 
     public function paymentMethodLabel(): ?string
     {
-        return match ($this->payment_method) {
-            'cash' => 'Cash',
-            'check' => 'Check',
-            'bank_transfer' => 'Bank Transfer',
-            'credit_card' => 'Credit Card (Stripe)',
-            'mobile_money' => 'Mobile Money',
-            default => null,
-        };
+        return \App\Support\PaymentMethodDetails::label($this->payment_method);
+    }
+
+    /**
+     * @return array{title: string, lines: array<int, string>, link: ?string, show_qr: bool}
+     */
+    public function paymentMethodDetails(): array
+    {
+        return \App\Support\PaymentMethodDetails::details($this->payment_method);
+    }
+
+    public function showsPaymentQr(): bool
+    {
+        return ! $this->isPaid() && \App\Support\PaymentMethodDetails::showsQr($this->payment_method);
     }
 
     /** Whether customer emails should include a Stripe payment link. */

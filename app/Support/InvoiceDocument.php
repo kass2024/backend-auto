@@ -29,15 +29,20 @@ class InvoiceDocument
             $includeStripeLink = $invoice->wantsStripePayment() && ! $invoice->isPaid();
         }
 
+        $showQr = $invoice->showsPaymentQr();
+        $qrKey = $showQr ? \App\Support\PaymentMethodDetails::qrKey($invoice->payment_method) : null;
+
         return [
             'invoice' => $invoice,
             'parts' => $invoice->items->where('type', 'part'),
             'services' => $invoice->items->where('type', 'service'),
             'logoUrl' => $showLogo ? self::logoUrl($forEmail) : '',
             'showLogo' => $showLogo,
-            'qrUrl' => self::qrUrl($forEmail),
-            'qrPath' => self::qrAbsolutePath(),
+            'qrUrl' => $showQr ? self::qrUrl($forEmail, $qrKey) : '',
+            'qrPath' => $showQr ? self::qrAbsolutePath($qrKey) : null,
+            'qrKey' => $qrKey,
             'embedQr' => false,
+            'paymentDetails' => $invoice->paymentMethodDetails(),
             'includeStripeLink' => $includeStripeLink,
             'paymentUrl' => $includeStripeLink ? $invoice->stripe_payment_url : null,
             'pdfUrl' => $forEmail ? self::publicViewUrl($invoice) : null,
@@ -52,9 +57,9 @@ class InvoiceDocument
         return $forEmail ? self::emailUrl($path, asset: true) : asset($path);
     }
 
-    public static function qrUrl(bool $forEmail = false): string
+    public static function qrUrl(bool $forEmail = false, ?string $qrKey = 'zelle'): string
     {
-        $path = self::qrPublicPath();
+        $path = self::qrPublicPath($qrKey);
 
         if ($path === null) {
             return '';
@@ -65,9 +70,14 @@ class InvoiceDocument
         return $forEmail ? self::emailUrl($path, asset: true) : asset($path);
     }
 
-    public static function qrPublicPath(): ?string
+    public static function qrPublicPath(?string $qrKey = 'zelle'): ?string
     {
-        foreach (['images/qr-egide.png', 'images/qr-egide.jpeg'] as $relative) {
+        $candidates = match ($qrKey) {
+            'cash_app' => ['images/qr-cashapp.png', 'images/qr-cashapp.jpeg'],
+            default => ['images/qr-egide.png', 'images/qr-egide.jpeg'],
+        };
+
+        foreach ($candidates as $relative) {
             if (is_file(public_path($relative))) {
                 return $relative;
             }
@@ -76,9 +86,9 @@ class InvoiceDocument
         return null;
     }
 
-    public static function qrAbsolutePath(): ?string
+    public static function qrAbsolutePath(?string $qrKey = 'zelle'): ?string
     {
-        $relative = self::qrPublicPath();
+        $relative = self::qrPublicPath($qrKey);
 
         return $relative ? public_path($relative) : null;
     }

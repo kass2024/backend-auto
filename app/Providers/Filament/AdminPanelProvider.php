@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\InvoicePrintController;
 use App\Http\Controllers\Admin\InvoiceServiceReminderController;
 use App\Http\Controllers\Admin\InvoiceTableActionController;
 use App\Http\Controllers\Admin\ListPrintController;
+use App\Http\Controllers\Admin\QuotationPrintController;
 use Filament\Http\Middleware\Authenticate;
 use Illuminate\Support\Facades\Route;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -98,8 +99,6 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 \App\Filament\Widgets\StatsOverview::class,
-                \App\Filament\Widgets\RecentBookingsWidget::class,
-                \App\Filament\Widgets\RecentQuoteRequestsWidget::class,
                 \App\Filament\Widgets\ServicesCatalogWidget::class,
                 \App\Filament\Widgets\StaffOverviewWidget::class,
             ])
@@ -145,6 +144,9 @@ class AdminPanelProvider extends PanelProvider
                 Route::middleware([Authenticate::class])
                     ->get('/invoices/{invoice}/print', InvoicePrintController::class)
                     ->name('invoices.print');
+                Route::middleware([Authenticate::class])
+                    ->get('/quotations/{quotation}/print', QuotationPrintController::class)
+                    ->name('quotations.print');
                 Route::middleware([Authenticate::class])
                     ->prefix('invoices/{invoice}')
                     ->name('invoices.')

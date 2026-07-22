@@ -174,7 +174,29 @@
     </div>
 
     <div class="footer">
-        <p>Payment methods: Cash, Check, Bank Transfer, Credit Card (Stripe), Mobile Money.</p>
+        @php
+            $paymentDetails = $paymentDetails ?? $invoice->paymentMethodDetails();
+        @endphp
+
+        @if($invoice->paymentMethodLabel())
+            <div class="pay-method-box">
+                <p class="pay-method-title"><strong>Pay with {{ $paymentDetails['title'] }}</strong></p>
+                @foreach($paymentDetails['lines'] as $line)
+                    <p>{{ $line }}</p>
+                @endforeach
+                @if(!empty($paymentDetails['link']))
+                    <p style="margin-top:8px;">
+                        <a href="{{ $paymentDetails['link'] }}" class="invoice-stripe-cta" style="display:inline-block;">
+                            Open Cash App — {{ $paymentDetails['title'] }}
+                        </a>
+                    </p>
+                    <p style="font-size:12px;word-break:break-all;">{{ $paymentDetails['link'] }}</p>
+                @endif
+            </div>
+        @else
+            <p>Payment methods: Cash, Check, Bank Transfer, Credit Card (Stripe), Mobile Money, Zelle, Cash App.</p>
+        @endif
+
         @if($invoice->isPaid())
             <p>
                 Paid on {{ $invoice->paid_at?->format('M j, Y g:i A') }}
@@ -188,7 +210,7 @@
                 <a href="{{ $paymentUrl }}" class="invoice-stripe-cta">Pay securely with Stripe — ${{ number_format($invoice->total, 2) }}</a>
             </p>
         @elseif($invoice->paymentMethodLabel())
-            <p>Please remit payment by the due date via {{ $invoice->paymentMethodLabel() }} or at our shop.</p>
+            <p>Please remit payment by the due date using the details above.</p>
         @else
             <p>Please remit payment by the due date. Contact us for payment options.</p>
         @endif
@@ -196,17 +218,29 @@
 
         @php
             $qrSrc = '';
-            if (! empty($embedQr) && ! empty($qrPath) && isset($message) && is_file($qrPath)) {
-                $qrSrc = $message->embed($qrPath);
-            } elseif (! empty($qrUrl)) {
-                $qrSrc = $qrUrl;
+            $showPayQr = $invoice->showsPaymentQr();
+            $qrKey = $qrKey ?? \App\Support\PaymentMethodDetails::qrKey($invoice->payment_method);
+            if ($showPayQr) {
+                if (! empty($embedQr) && ! empty($qrPath) && isset($message) && is_file($qrPath)) {
+                    $qrSrc = $message->embed($qrPath);
+                } elseif (! empty($qrUrl)) {
+                    $qrSrc = $qrUrl;
+                }
             }
         @endphp
-        @if(! $invoice->isPaid() && $qrSrc !== '')
+        @if($showPayQr && $qrSrc !== '')
             <div class="pay-qr">
-                <p class="scan-and-pay">Scan and pay</p>
-                <p class="pay-qr-help">Scan this code in your bank&apos;s app to pay <strong>EGIDE</strong></p>
-                <img src="{{ $qrSrc }}" alt="Scan and pay QR code" width="280" style="width:280px;max-width:100%;height:auto;border:1px solid #d8dcc8;padding:10px;background:#fff;display:block;margin:12px auto 0;">
+                @if($qrKey === 'cash_app')
+                    <p class="scan-and-pay">Scan and pay with Cash App</p>
+                    <p class="pay-qr-help">
+                        Scan in the Cash App camera to pay
+                        <strong>{{ config('neamee.payment_methods.cash_app.cashtag', '$EgideNiringiyimana') }}</strong>
+                    </p>
+                @else
+                    <p class="scan-and-pay">Scan and pay with Zelle</p>
+                    <p class="pay-qr-help">Scan this code in your bank&apos;s app to pay <strong>EGIDE</strong> via Zelle</p>
+                @endif
+                <img src="{{ $qrSrc }}" alt="{{ $qrKey === 'cash_app' ? 'Cash App' : 'Zelle' }} QR code" width="280" style="width:280px;max-width:100%;height:auto;border:1px solid #d8dcc8;padding:10px;background:#fff;display:block;margin:12px auto 0;">
             </div>
         @endif
     </div>

@@ -18,12 +18,17 @@ class BookingResource extends Resource
 
     protected static function staffNavigation(): bool
     {
-        return true;
+        return false;
     }
 
     protected static function staffFullAccess(): bool
     {
         return true;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
     }
 
     protected static ?string $model = Booking::class;

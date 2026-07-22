@@ -184,23 +184,30 @@ class InvoiceFormSchema
                     Forms\Components\Hidden::make('total')->dehydrated(),
                     Forms\Components\Select::make('payment_method')
                         ->label('Payment method')
-                        ->options([
-                            'cash' => 'Cash',
-                            'check' => 'Check',
-                            'bank_transfer' => 'Bank Transfer',
-                            'credit_card' => 'Credit Card (Stripe)',
-                            'mobile_money' => 'Mobile Money',
-                        ])
+                        ->options(\App\Support\PaymentMethodDetails::options())
                         ->default('cash')
                         ->live()
                         ->helperText(fn (Get $get, string $operation): string => match (true) {
                             $operation === 'create' && $get('payment_method') === 'credit_card' => 'Invoice stays unpaid. A Stripe payment link is included in the customer email.',
-                            $operation === 'create' => 'Invoice is created unpaid and emailed as unpaid. Preferred payment method is shown for remittance.',
+                            $operation === 'create' => 'Invoice is created unpaid and emailed as unpaid. Selected method details appear on the invoice.',
                             $get('status') === 'paid' => 'How the customer paid — shown on the invoice.',
                             $get('payment_method') === 'credit_card' => 'Customer email will include a Stripe payment link while the invoice is unpaid.',
-                            default => 'Choose Credit Card (Stripe) to collect payment online before marking paid.',
+                            default => 'Details for the selected method load below and on the printed invoice.',
                         })
-                        ->required(fn (Get $get, string $operation): bool => $operation === 'create' || $get('status') === 'paid'),
+                        ->required(fn (Get $get, string $operation): bool => $operation === 'create' || $get('status') === 'paid')
+                        ->columnSpanFull(),
+                    Forms\Components\Placeholder::make('payment_method_details')
+                        ->label(fn (Get $get): string => 'Details — '.(\App\Support\PaymentMethodDetails::label($get('payment_method')) ?? 'Payment'))
+                        ->content(fn (Get $get): string => \App\Support\PaymentMethodDetails::adminHelperText($get('payment_method')))
+                        ->visible(fn (Get $get): bool => filled($get('payment_method')))
+                        ->columnSpanFull(),
+                    Forms\Components\Placeholder::make('payment_method_qr_note')
+                        ->label(fn (Get $get): string => $get('payment_method') === 'cash_app' ? 'Cash App QR' : 'Zelle QR')
+                        ->content(fn (Get $get): string => $get('payment_method') === 'cash_app'
+                            ? 'A US Cash App QR for $EgideNiringiyimana will be printed on the invoice and embedded in the customer email.'
+                            : 'The EGIDE Zelle QR code will be printed on the invoice and embedded in the customer email for this payment method only.')
+                        ->visible(fn (Get $get): bool => in_array($get('payment_method'), ['zelle', 'cash_app'], true))
+                        ->columnSpanFull(),
                     Forms\Components\DateTimePicker::make('paid_at')
                         ->visible(fn (Get $get, string $operation): bool => $operation !== 'create' && $get('status') === 'paid'),
                 ])

@@ -18,10 +18,18 @@ Pay securely with Stripe:
 {{ $paymentUrl }}
 
 @endif
-Payment methods: Cash, Check, Bank Transfer, Credit Card (Stripe), Mobile Money.
-
+@php $details = $paymentDetails ?? $invoice->paymentMethodDetails(); @endphp
 @if($invoice->paymentMethodLabel() && ! $invoice->isPaid())
-Preferred payment method on file: {{ $invoice->paymentMethodLabel() }}
+Pay with {{ $details['title'] }}:
+@foreach($details['lines'] as $line)
+- {{ $line }}
+@endforeach
+@if(!empty($details['link']))
+{{ $details['link'] }}
+@endif
+@if(!empty($details['show_qr']))
+Open the HTML invoice / PDF to scan the {{ ($details['qr_key'] ?? '') === 'cash_app' ? 'Cash App' : 'Zelle' }} QR code.
+@endif
 @endif
 
 Questions? Reply to this email or call {{ config('neamee.phone') }}.

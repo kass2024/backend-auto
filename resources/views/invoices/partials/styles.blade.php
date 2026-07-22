@@ -262,6 +262,26 @@ table.totals tr.grand .label { background: transparent; color: #fff; }
     letter-spacing: 0.02em;
 }
 
+.footer .pay-method-box {
+    text-align: left;
+    max-width: 520px;
+    margin: 0 auto 14px;
+    padding: 12px 14px;
+    border: 1px solid {{ $b['border'] }};
+    border-radius: 8px;
+    background: {{ $b['surface'] }};
+}
+
+.footer .pay-method-box .pay-method-title {
+    margin-bottom: 6px;
+    color: {{ $b['primary_dark'] }};
+}
+
+.footer .pay-method-box p {
+    text-align: left;
+    margin-bottom: 4px;
+}
+
 .footer .pay-qr {
     margin-top: 22px;
     text-align: center;

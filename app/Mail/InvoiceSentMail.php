@@ -43,9 +43,18 @@ class InvoiceSentMail extends Mailable
             forEmail: true,
         );
 
-        // Absolute path for $message->embed() in the Blade template (CID inline image).
-        $viewData['qrPath'] = InvoiceDocument::qrAbsolutePath();
-        $viewData['embedQr'] = true;
+        // Embed payment QR as CID only for Zelle / Cash App.
+        if ($this->invoice->showsPaymentQr()) {
+            $qrKey = \App\Support\PaymentMethodDetails::qrKey($this->invoice->payment_method);
+            $viewData['qrPath'] = InvoiceDocument::qrAbsolutePath($qrKey);
+            $viewData['qrKey'] = $qrKey;
+            $viewData['embedQr'] = true;
+        } else {
+            $viewData['qrPath'] = null;
+            $viewData['qrUrl'] = '';
+            $viewData['qrKey'] = null;
+            $viewData['embedQr'] = false;
+        }
 
         return new Content(
             view: 'emails.invoice-html',
