@@ -14,18 +14,29 @@ use Throwable;
 
 class DatabaseBootstrapper
 {
+    /** Tables that must exist once their migrations ship (cPanel often skips artisan migrate). */
+    private const CRITICAL_TABLES = [
+        'quotations',
+        'quotation_items',
+    ];
+
     public static function run(): void
     {
-        if (! filter_var(env('AUTO_MIGRATE', false), FILTER_VALIDATE_BOOLEAN)) {
-            return;
-        }
+        $autoMigrate = (bool) config('neamee.auto_migrate', true);
 
         try {
             self::ensureDatabaseExists();
 
-            if (self::hasPendingMigrations()) {
+            $needsMigrate = $autoMigrate && self::hasPendingMigrations();
+            if (! $needsMigrate) {
+                $needsMigrate = self::missingCriticalTables();
+            }
+
+            if ($needsMigrate) {
                 Artisan::call('migrate', ['--force' => true]);
-                Log::info('Database bootstrap: pending migrations applied.');
+                Log::info('Database bootstrap: migrations applied.', [
+                    'output' => trim(Artisan::output()),
+                ]);
             }
 
             if (Schema::hasTable('users') && User::query()->count() === 0) {
@@ -34,6 +45,17 @@ class DatabaseBootstrapper
         } catch (Throwable $e) {
             Log::warning('Database bootstrap: '.$e->getMessage());
         }
+    }
+
+    public static function missingCriticalTables(): bool
+    {
+        foreach (self::CRITICAL_TABLES as $table) {
+            if (! Schema::hasTable($table)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static function hasPendingMigrations(): bool

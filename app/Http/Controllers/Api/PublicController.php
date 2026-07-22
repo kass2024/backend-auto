@@ -33,6 +33,9 @@ class PublicController extends Controller
         $authReady = $appKeySet && $sessionsTableOk && $sessionPathWritable;
         $sessionDomain = config('session.domain');
 
+        $quotationsOk = $dbOk && \Illuminate\Support\Facades\Schema::hasTable('quotations')
+            && \Illuminate\Support\Facades\Schema::hasTable('quotation_items');
+
         return response()->json([
             'ok' => $dbOk && $authReady,
             'app' => config('app.name'),
@@ -50,6 +53,8 @@ class PublicController extends Controller
             'session_domain_ok' => filled($sessionDomain) && str_starts_with($sessionDomain, '.'),
             'sessions_table_ok' => $sessionsTableOk,
             'session_path_writable' => $sessionPathWritable,
+            'quotations_table_ok' => $quotationsOk,
+            'auto_migrate' => (bool) config('neamee.auto_migrate', false),
             'time' => now()->toIso8601String(),
         ], ($dbOk && $authReady) ? 200 : 503);
     }

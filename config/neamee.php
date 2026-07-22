@@ -14,6 +14,12 @@ return [
     'email_app_url' => env('MAIL_APP_URL', env('APP_URL')),
 
     /**
+     * Apply pending migrations on web requests (cPanel deploys).
+     * Must live in config — env() is null after `php artisan config:cache`.
+     */
+    'auto_migrate' => filter_var(env('AUTO_MIGRATE', true), FILTER_VALIDATE_BOOLEAN),
+
+    /**
      * Remittance details shown on invoices when a payment method is selected.
      */
     'payment_methods' => [
